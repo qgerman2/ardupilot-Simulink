@@ -45,6 +45,7 @@ public:
         None   = 0,
         VecNav = 1,
         LORD = 2,
+        HITL = 3,
     };
 
     static AP_ExternalAHRS *get_singleton(void) {
