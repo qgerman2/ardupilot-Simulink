@@ -1,3 +1,12 @@
+# ArduPilot 'Custom Plane controller' development fork
+
+This fork ... HITL with X-Plane and Simulink controller, they can be enabled independently.
+
+... more docs here.
+
+
+----------
+
 # ArduPilot Project
 
 <a href="https://ardupilot.org/discord"><img src="https://img.shields.io/discord/674039678562861068.svg" alt="Discord">

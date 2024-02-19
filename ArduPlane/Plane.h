@@ -83,6 +83,7 @@
 #include <AP_Landing/AP_Landing.h>
 #include <AP_LandingGear/AP_LandingGear.h>     // Landing Gear library
 #include <AP_Follow/AP_Follow.h>
+#include <AP_Simulink/AP_Simulink.h>           // Simulink
 
 #include "GCS_Mavlink.h"
 #include "GCS_Plane.h"
@@ -132,6 +133,7 @@ public:
     friend class Tiltrotor;
     friend class SLT_Transition;
     friend class Tailsitter_Transition;
+    friend class AP_Simulink;
 
     friend class Mode;
     friend class ModeCircle;
@@ -250,6 +252,9 @@ private:
 #if OSD_ENABLED || OSD_PARAM_ENABLED
     AP_OSD osd;
 #endif
+
+    // Simulink
+    AP_Simulink simulink;
 
     ModeCircle mode_circle;
     ModeStabilize mode_stabilize;
