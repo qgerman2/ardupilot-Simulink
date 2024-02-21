@@ -7,13 +7,13 @@
 //
 // Code generated for Simulink model 'controller'.
 //
-// Model version                  : 1.1
+// Model version                  : 1.24
 // Simulink Coder version         : 23.2 (R2023b) 01-Aug-2023
-// C/C++ source code generated on : Tue Feb 20 00:59:20 2024
+// C/C++ source code generated on : Tue Feb 20 21:22:37 2024
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: ARM Compatible->ARM Cortex-M
-// Code generation objectives: Unspecified
+// Code generation objective: Safety precaution
 // Validation result: Not run
 //
 #ifndef RTW_HEADER_controller_h_
@@ -37,12 +37,19 @@ class controller final
  public:
   // External inputs (root inport signals with default storage)
   struct ExtU_controller_T {
-    real32_T entrada;                  // '<Root>/entrada'
+    real32_T Roll_objetivo;            // '<Root>/Roll_objetivo'
+    real32_T Roll_sensor;              // '<Root>/Roll_sensor'
+    real32_T Pitch_objetivo;           // '<Root>/Pitch_objetivo'
+    real32_T Pitch_sensor;             // '<Root>/Pitch_sensor'
+    real32_T Throttle_objetivo;        // '<Root>/Throttle_objetivo'
   };
 
   // External outputs (root outports fed by signals with default storage)
   struct ExtY_controller_T {
-    real32_T salida;                   // '<Root>/salida'
+    real32_T Aleron;                   // '<Root>/Aleron'
+    real32_T Timon;                    // '<Root>/Timon'
+    real32_T Elevador;                 // '<Root>/Elevador'
+    real32_T Acelerador;               // '<Root>/Acelerador'
   };
 
   // Real-time Model Data Structure
@@ -103,6 +110,12 @@ class controller final
   // Real-Time Model
   RT_MODEL_controller_T controller_M;
 };
+
+//-
+//  These blocks were eliminated from the model due to optimizations:
+//
+//  Block '<Root>/Gain' : Eliminated nontunable gain of 1
+
 
 //-
 //  The generated code includes comments that allow you to trace directly

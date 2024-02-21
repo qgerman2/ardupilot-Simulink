@@ -30,7 +30,7 @@ AP_ExternalAHRS_HITL::AP_ExternalAHRS_HITL(AP_ExternalAHRS *_frontend,
     baudrate = sm.find_baudrate(AP_SerialManager::SerialProtocol_AHRS, 0);
     port_num = sm.find_portnum(AP_SerialManager::SerialProtocol_AHRS, 0);
     if (!uart) {
-        GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "HITL: No AHRS serial port defined for communications");
+        GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "HITL: No serial port defined as type ExternalAHRS");
         return;
     }
 
