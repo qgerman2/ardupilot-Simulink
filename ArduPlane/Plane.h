@@ -253,9 +253,6 @@ private:
     AP_OSD osd;
 #endif
 
-    // Simulink
-    AP_Simulink simulink;
-
     ModeCircle mode_circle;
     ModeStabilize mode_stabilize;
     ModeTraining mode_training;
@@ -307,6 +304,10 @@ private:
 
     // last time we ran roll/pitch stabilization
     uint32_t last_stabilize_ms;
+
+    // Simulink
+    AP_Simulink simulink;
+    void reset_pid() {last_stabilize_ms = 0;}
 
     // Failsafe
     struct {

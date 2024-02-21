@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "AP_Simulink/AP_Simulink.h"
+#include <../ArduPlane/Plane.h>
 #include "controller.h"
 #include <GCS_MAVLink/GCS.h>
 #include <AP_AHRS/AP_AHRS.h>
@@ -72,6 +73,7 @@ void AP_Simulink::run(nav_inputs nav) {
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Enabled custom controller.");
         } else {
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Disabled custom controller.");
+            plane.reset_pid();
         }
     }
     running = ok;
