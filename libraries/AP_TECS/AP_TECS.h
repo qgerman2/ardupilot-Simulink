@@ -22,10 +22,13 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_Vehicle/AP_FixedWing.h>
 #include <Filter/AverageFilter.h>
+#include <AP_Simulink/AP_Simulink.h>
 
 class AP_Landing;
 class AP_TECS {
 public:
+    friend class AP_Simulink_Plane;
+    
     AP_TECS(AP_AHRS &ahrs, const AP_FixedWing &parms, const AP_Landing &landing, const uint32_t log_bitmask)
         : _ahrs(ahrs)
         , aparm(parms)
