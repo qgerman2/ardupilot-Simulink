@@ -111,9 +111,6 @@ void Plane::init_ardupilot()
     g2.landing_gear.init();
 #endif
 
-    // Simulink
-    simulink.init();
-
 #if FENCE_TRIGGERED_PIN > 0
     hal.gpio->pinMode(FENCE_TRIGGERED_PIN, HAL_GPIO_OUTPUT);
     hal.gpio->write(FENCE_TRIGGERED_PIN, 0);
@@ -158,6 +155,9 @@ void Plane::init_ardupilot()
 #if AP_GRIPPER_ENABLED
     g2.gripper.init();
 #endif
+
+    // Simulink
+    simulink.init();
 }
 
 //********************************************************************************
