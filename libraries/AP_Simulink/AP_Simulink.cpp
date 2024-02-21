@@ -16,10 +16,6 @@ controller::ExtY_controller_T output = {};
 
 AP_Simulink::AP_Simulink() {}
 
-bool enabled_rc = false;
-bool enabled_nav = false;
-bool running = false;
-
 void AP_Simulink::init() {
     control.initialize();
     ch = RC_Channels::get_singleton()->find_channel_for_option(RC_Channel::AUX_FUNC::SCRIPTING_1);
@@ -46,38 +42,37 @@ void AP_Simulink::check_rc() {
 }
 
 void AP_Simulink::check_nav() {
-    // bool nav_ok = true;
-    // // Only run on auto mode
-    // if (nav.mode != 10) { nav_ok = false; }
-    // // during regular waypoints
-    // if (nav.cmd != MAV_CMD_NAV_WAYPOINT) { nav_ok = false; }
-    // if (enabled_nav != nav_ok) {
-    //     if (nav_ok) {
-    //         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Entered navigation conditions.");
-    //     } else {
-    //         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Exited navigation conditions.");
-    //     }
-    // }
-    // enabled_nav = nav_ok;
+    bool nav_ok = true;
+    // Only run on auto mode
+    if (control_mode != 10) { nav_ok = false; }
+    // during regular waypoints
+    if (nav_command != MAV_CMD_NAV_WAYPOINT) { nav_ok = false; }
+    if (enabled_nav != nav_ok) {
+        if (nav_ok) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Entered navigation conditions.");
+        } else {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Exited navigation conditions.");
+        }
+    }
+    enabled_nav = nav_ok;
     return;
 }
 
-void AP_Simulink::run(void *veh) {
-
-    // // Check and notify state
-    // check_rc();
-    // check_nav(nav);
-    // bool ok = enabled_rc && enabled_nav;
-    // if (ok != running) {
-    //     if (ok) {
-    //         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Enabled custom controller.");
-    //     } else {
-    //         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Disabled custom controller.");
-    //         plane.reset_pid();
-    //     }
-    // }
-    // running = ok;
-    // if (!ok) { return; }
+void AP_Simulink::run() {
+    // Check and notify state
+    check_rc();
+    check_nav();
+    bool ok = enabled_rc && enabled_nav;
+    if (ok != running) {
+        if (ok) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Enabled custom controller.");
+        } else {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Disabled custom controller.");
+            reset_pid();
+        }
+    }
+    running = ok;
+    if (!ok) { return; }
 
     // // Set up inputs
     // input.Roll_sensor = ahrs->roll;

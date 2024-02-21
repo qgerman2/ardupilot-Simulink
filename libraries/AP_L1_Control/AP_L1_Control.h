@@ -22,6 +22,7 @@
 
 class AP_L1_Control : public AP_Navigation {
 public:
+    friend class AP_Simulink_Plane;
     AP_L1_Control(AP_AHRS &ahrs, const AP_TECS *tecs)
         : _ahrs(ahrs)
         , _tecs(tecs)

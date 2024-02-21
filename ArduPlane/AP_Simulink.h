@@ -4,5 +4,7 @@
 
 class AP_Simulink_Plane : public AP_Simulink {
 public:
-    void test();
+    // Gathers values from Plane and sends them to the library.
+    void pre_run();
+    void reset_pid() override;
 };
