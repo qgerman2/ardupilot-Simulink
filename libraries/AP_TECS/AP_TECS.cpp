@@ -606,7 +606,6 @@ void AP_TECS::_update_height_demand(void)
         // correct for offset between height above ground and height above datum used by control loops
         _hgt_dem += (_hgt_afe - _height);
     }
-    printf("\n%6.2f", _hgt_dem);
 }
 
 void AP_TECS::_detect_underspeed(void)
