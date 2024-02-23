@@ -7,17 +7,16 @@
 //
 // Code generated for Simulink model 'controller'.
 //
-// Model version                  : 1.45
+// Model version                  : 1.49
 // Simulink Coder version         : 23.2 (R2023b) 01-Aug-2023
-// C/C++ source code generated on : Thu Feb 22 22:16:09 2024
+// C/C++ source code generated on : Fri Feb 23 15:40:00 2024
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: ARM Compatible->ARM Cortex-M
-// Code generation objective: Safety precaution
+// Code generation objectives: Unspecified
 // Validation result: Not run
 //
 #include "controller.h"
-#include "rtwtypes.h"
 
 // user code (top of source file)
 
@@ -26,12 +25,12 @@
 // Model step function
 void controller::step()
 {
-  real32_T rtb_Add1;
-  real32_T rtb_FilterCoefficient;
-  real32_T rtb_FilterCoefficient_i;
-  real32_T rtb_FilterCoefficient_j;
-  real32_T rtb_Filter_d;
-  real32_T rtb_Integrator_l;
+  float rtb_Add1;
+  float rtb_FilterCoefficient;
+  float rtb_FilterCoefficient_i;
+  float rtb_FilterCoefficient_j;
+  float rtb_Filter_d;
+  float rtb_Integrator_l;
 
   // Saturate: '<S3>/Saturation' incorporates:
   //   Inport: '<Root>/yaw_error'
@@ -184,26 +183,26 @@ void controller::step()
   // End of Saturate: '<S92>/Saturation'
 
   // Update for DiscreteIntegrator: '<S129>/Filter'
-  controller_DW.Filter_DSTATE += 0.0025F * rtb_FilterCoefficient;
+  controller_DW.Filter_DSTATE += 0.01F * rtb_FilterCoefficient;
 
   // Update for DiscreteIntegrator: '<S134>/Integrator' incorporates:
   //   Gain: '<S131>/Integral Gain'
 
-  controller_DW.Integrator_DSTATE += 0.0F * rtb_Integrator_l * 0.0025F;
+  controller_DW.Integrator_DSTATE += 0.0F * rtb_Integrator_l * 0.01F;
 
   // Update for DiscreteIntegrator: '<S36>/Integrator'
-  controller_DW.Integrator_DSTATE_i += rtb_Filter_d * 0.0025F;
+  controller_DW.Integrator_DSTATE_i += rtb_Filter_d * 0.01F;
 
   // Update for DiscreteIntegrator: '<S31>/Filter'
-  controller_DW.Filter_DSTATE_p += 0.0025F * rtb_FilterCoefficient_i;
+  controller_DW.Filter_DSTATE_p += 0.01F * rtb_FilterCoefficient_i;
 
   // Update for DiscreteIntegrator: '<S85>/Integrator' incorporates:
   //   Gain: '<S82>/Integral Gain'
 
-  controller_DW.Integrator_DSTATE_e += 0.0F * rtb_Add1 * 0.0025F;
+  controller_DW.Integrator_DSTATE_e += 0.0F * rtb_Add1 * 0.01F;
 
   // Update for DiscreteIntegrator: '<S80>/Filter'
-  controller_DW.Filter_DSTATE_o += 0.0025F * rtb_FilterCoefficient_j;
+  controller_DW.Filter_DSTATE_o += 0.01F * rtb_FilterCoefficient_j;
 }
 
 // Model initialize function
@@ -216,6 +215,18 @@ void controller::initialize()
 void controller::terminate()
 {
   // (no terminate code required)
+}
+
+// Block states get method
+const controller::DW_controller_T &controller::getDWork() const
+{
+  return controller_DW;
+}
+
+// Block states set method
+void controller::setDWork(const controller::DW_controller_T *pDW_controller_T)
+{
+  controller_DW = *pDW_controller_T;
 }
 
 // Constructor
@@ -236,6 +247,12 @@ controller::~controller() = default;
 controller::RT_MODEL_controller_T * controller::getRTM()
 {
   return (&controller_M);
+}
+
+// Real-Time Model set method
+void controller::setRTM(const RT_MODEL_controller_T *pcontroller_M)
+{
+  controller_M = *pcontroller_M;
 }
 
 //

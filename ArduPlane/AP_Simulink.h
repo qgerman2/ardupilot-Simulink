@@ -7,5 +7,4 @@ public:
     // Gathers values from Plane and sends them to the library.
     void pre_loop();
     void reset_pid() override;
-    void set_servos();
 };

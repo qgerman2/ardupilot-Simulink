@@ -47,7 +47,9 @@ void AP_Simulink::loop() {
 #endif
 }
 
-bool AP_Simulink::check() {
+bool enabled_rc = false;
+bool enabled_nav = false;
+void AP_Simulink::check() {
     // Check if the Scripting1 RC switch is on
     bool rc_ok = true;
     if ((ch == nullptr) || (ch->get_aux_switch_pos() != RC_Channel::AuxSwitchPos::HIGH)) {
@@ -78,21 +80,14 @@ bool AP_Simulink::check() {
     if (ok != running) {
         if (ok) {
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Enabled custom controller.");
-            initialize();
+            control.initialize();
         } else {
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Disabled custom controller.");
-            terminate();
+            control.terminate();
             reset_pid();
         }
     }
     running = ok;
-    return ok;
-}
-
-// ** Custom controller methods **
-
-void AP_Simulink::initialize() {
-    control.initialize();
 }
 
 void AP_Simulink::step() {
@@ -128,14 +123,12 @@ void AP_Simulink::step() {
 
     // ** Process outputs **
     output = control.getExternalOutputs();
-    servos.aileron = RAD2SERVO(output.aileron);
-    servos.elevator = RAD2SERVO(output.elevator);
-    servos.rudder = RAD2SERVO(output.rudder);
-    servos.throttle = output.throttle;
-}
-
-void AP_Simulink::terminate() {
-    control.terminate();
+    if (running) {
+        SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, RAD2SERVO(output.aileron));
+        SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, RAD2SERVO(output.elevator));
+        SRV_Channels::set_output_scaled(SRV_Channel::k_rudder, RAD2SERVO(output.rudder));
+        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, output.throttle);
+    }
 }
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
@@ -163,7 +156,7 @@ void AP_Simulink::logging() {
                 int bytes = snprintf(&write_buf[pos], sizeof(write_buf), "%s", log_header);
                 pos = bytes;
                 // write debug outputs
-                int outputs = sizeof(output) / sizeof(real32_T);
+                int outputs = sizeof(output) / sizeof(float);
                 int debug_outputs = outputs - 4;
                 for (int i = 0; i < debug_outputs; i++) {
                     bytes = snprintf(&write_buf[pos], sizeof(write_buf) - pos, "debug%-8d", i + 1);
@@ -196,8 +189,8 @@ void AP_Simulink::logging() {
     pos = pos + bytes;
     // write inputs and outputs
     int extra = 2; // time and active
-    int inputs = sizeof(input) / sizeof(real32_T);
-    int outputs = sizeof(output) / sizeof(real32_T);
+    int inputs = sizeof(input) / sizeof(float);
+    int outputs = sizeof(output) / sizeof(float);
     for (int i = 0; i < extra + inputs + outputs; i++) {
         float value;
         if (i == 0) {
@@ -205,9 +198,9 @@ void AP_Simulink::logging() {
         } else if (i == 1) {
             value = running;
         } else if (i < inputs + extra) {
-            value = reinterpret_cast<real32_T *>(&input)[i - extra];
+            value = reinterpret_cast<float *>(&input)[i - extra];
         } else {
-            value = reinterpret_cast<real32_T *>(&output)[i - extra - inputs];
+            value = reinterpret_cast<float *>(&output)[i - extra - inputs];
         }
         bytes = snprintf(&write_buf[pos], sizeof(write_buf) - pos, "%-13.4f", value);
         pos = pos + bytes;

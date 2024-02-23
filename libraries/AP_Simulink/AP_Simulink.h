@@ -53,14 +53,6 @@ public:
     float pitch_TECS;
     float throttle_TECS;
 
-    // Output
-    struct {
-        float aileron = 0;
-        float elevator = 0;
-        float rudder = 0;
-        float throttle = 0;
-    } servos;
-
     AP_Simulink();
     void init();
 
@@ -71,13 +63,8 @@ public:
 
     // ** Custom controller **
     bool running = false;
-    bool enabled_rc = false;
-    bool enabled_nav = false;
-
-    bool check();
+    void check();
     void step();
-    void initialize();
-    void terminate();
 
     // Writes the state to a file
     void logging();

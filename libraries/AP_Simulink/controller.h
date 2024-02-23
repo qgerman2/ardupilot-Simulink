@@ -7,18 +7,19 @@
 //
 // Code generated for Simulink model 'controller'.
 //
-// Model version                  : 1.45
+// Model version                  : 1.49
 // Simulink Coder version         : 23.2 (R2023b) 01-Aug-2023
-// C/C++ source code generated on : Thu Feb 22 22:16:09 2024
+// C/C++ source code generated on : Fri Feb 23 15:40:00 2024
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: ARM Compatible->ARM Cortex-M
-// Code generation objective: Safety precaution
+// Code generation objectives: Unspecified
 // Validation result: Not run
 //
 #ifndef RTW_HEADER_controller_h_
 #define RTW_HEADER_controller_h_
-#include "rtwtypes.h"
+#include <stdbool.h>
+#include <stdint.h>
 #include "controller_types.h"
 
 // Macros for accessing real-time model data structure
@@ -35,49 +36,49 @@ class controller final
 {
   // public data and function members
  public:
-  // Block states (default storage) for system '<Root>'
+  // Block signals and states (default storage) for system '<Root>'
   struct DW_controller_T {
-    real32_T Filter_DSTATE;            // '<S129>/Filter'
-    real32_T Integrator_DSTATE;        // '<S134>/Integrator'
-    real32_T Integrator_DSTATE_i;      // '<S36>/Integrator'
-    real32_T Filter_DSTATE_p;          // '<S31>/Filter'
-    real32_T Integrator_DSTATE_e;      // '<S85>/Integrator'
-    real32_T Filter_DSTATE_o;          // '<S80>/Filter'
+    float Filter_DSTATE;               // '<S129>/Filter'
+    float Integrator_DSTATE;           // '<S134>/Integrator'
+    float Integrator_DSTATE_i;         // '<S36>/Integrator'
+    float Filter_DSTATE_p;             // '<S31>/Filter'
+    float Integrator_DSTATE_e;         // '<S85>/Integrator'
+    float Filter_DSTATE_o;             // '<S80>/Filter'
   };
 
   // External inputs (root inport signals with default storage)
   struct ExtU_controller_T {
-    real32_T control_mode;             // '<Root>/control_mode'
-    real32_T command_nav;              // '<Root>/command_nav'
-    real32_T roll;                     // '<Root>/roll'
-    real32_T pitch;                    // '<Root>/pitch'
-    real32_T yaw;                      // '<Root>/yaw'
-    real32_T altitude;                 // '<Root>/altitude'
-    real32_T airspeed;                 // '<Root>/airspeed'
-    real32_T yaw_nav;                  // '<Root>/yaw_nav'
-    real32_T yaw_error;                // '<Root>/yaw_error'
-    real32_T altitude_nav;             // '<Root>/altitude_nav'
-    real32_T roll_L1;                  // '<Root>/roll_L1'
-    real32_T pitch_TECS;               // '<Root>/pitch_TECS'
-    real32_T throttle_TECS;            // '<Root>/throttle_TECS'
-    real32_T aileron_rc;               // '<Root>/aileron_rc'
-    real32_T elevator_rc;              // '<Root>/elevator_rc'
-    real32_T rudder_rc;                // '<Root>/rudder_rc'
-    real32_T throttle_rc;              // '<Root>/throttle_rc'
+    float control_mode;                // '<Root>/control_mode'
+    float command_nav;                 // '<Root>/command_nav'
+    float roll;                        // '<Root>/roll'
+    float pitch;                       // '<Root>/pitch'
+    float yaw;                         // '<Root>/yaw'
+    float altitude;                    // '<Root>/altitude'
+    float airspeed;                    // '<Root>/airspeed'
+    float yaw_nav;                     // '<Root>/yaw_nav'
+    float yaw_error;                   // '<Root>/yaw_error'
+    float altitude_nav;                // '<Root>/altitude_nav'
+    float roll_L1;                     // '<Root>/roll_L1'
+    float pitch_TECS;                  // '<Root>/pitch_TECS'
+    float throttle_TECS;               // '<Root>/throttle_TECS'
+    float aileron_rc;                  // '<Root>/aileron_rc'
+    float elevator_rc;                 // '<Root>/elevator_rc'
+    float rudder_rc;                   // '<Root>/rudder_rc'
+    float throttle_rc;                 // '<Root>/throttle_rc'
   };
 
   // External outputs (root outports fed by signals with default storage)
   struct ExtY_controller_T {
-    real32_T aileron;                  // '<Root>/aileron'
-    real32_T elevator;                 // '<Root>/elevator'
-    real32_T rudder;                   // '<Root>/rudder'
-    real32_T throttle;                 // '<Root>/throttle'
-    real32_T debug[4];                 // '<Root>/debug'
+    float aileron;                     // '<Root>/aileron'
+    float elevator;                    // '<Root>/elevator'
+    float rudder;                      // '<Root>/rudder'
+    float throttle;                    // '<Root>/throttle'
+    float debug[4];                    // '<Root>/debug'
   };
 
   // Real-time Model Data Structure
   struct RT_MODEL_controller_T {
-    const char_T * volatile errorStatus;
+    const char * volatile errorStatus;
   };
 
   // Copy Constructor
@@ -95,6 +96,9 @@ class controller final
   // Real-Time Model get method
   controller::RT_MODEL_controller_T * getRTM();
 
+  // Real-Time Model set method
+  void setRTM(const RT_MODEL_controller_T *pcontroller_M);
+
   // Root inports set method
   void setExternalInputs(const ExtU_controller_T *pExtU_controller_T)
   {
@@ -106,6 +110,12 @@ class controller final
   {
     return controller_Y;
   }
+
+  // Block states get method
+  const DW_controller_T &getDWork() const;
+
+  // Block states set method
+  void setDWork(const DW_controller_T *pDW_controller_T);
 
   // model initialize function
   static void initialize();
