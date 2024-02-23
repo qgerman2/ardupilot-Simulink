@@ -7,9 +7,9 @@
 //
 // Code generated for Simulink model 'controller'.
 //
-// Model version                  : 1.38
+// Model version                  : 1.45
 // Simulink Coder version         : 23.2 (R2023b) 01-Aug-2023
-// C/C++ source code generated on : Thu Feb 22 01:07:14 2024
+// C/C++ source code generated on : Thu Feb 22 22:16:09 2024
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -39,10 +39,10 @@ class controller final
   struct DW_controller_T {
     real32_T Filter_DSTATE;            // '<S129>/Filter'
     real32_T Integrator_DSTATE;        // '<S134>/Integrator'
-    real32_T Filter_DSTATE_p;          // '<S31>/Filter'
     real32_T Integrator_DSTATE_i;      // '<S36>/Integrator'
-    real32_T Filter_DSTATE_o;          // '<S80>/Filter'
+    real32_T Filter_DSTATE_p;          // '<S31>/Filter'
     real32_T Integrator_DSTATE_e;      // '<S85>/Integrator'
+    real32_T Filter_DSTATE_o;          // '<S80>/Filter'
   };
 
   // External inputs (root inport signals with default storage)
@@ -60,6 +60,10 @@ class controller final
     real32_T roll_L1;                  // '<Root>/roll_L1'
     real32_T pitch_TECS;               // '<Root>/pitch_TECS'
     real32_T throttle_TECS;            // '<Root>/throttle_TECS'
+    real32_T aileron_rc;               // '<Root>/aileron_rc'
+    real32_T elevator_rc;              // '<Root>/elevator_rc'
+    real32_T rudder_rc;                // '<Root>/rudder_rc'
+    real32_T throttle_rc;              // '<Root>/throttle_rc'
   };
 
   // External outputs (root outports fed by signals with default storage)
@@ -68,6 +72,7 @@ class controller final
     real32_T elevator;                 // '<Root>/elevator'
     real32_T rudder;                   // '<Root>/rudder'
     real32_T throttle;                 // '<Root>/throttle'
+    real32_T debug[4];                 // '<Root>/debug'
   };
 
   // Real-time Model Data Structure
@@ -135,11 +140,6 @@ class controller final
 //-
 //  These blocks were eliminated from the model due to optimizations:
 //
-//  Block '<S33>/Integral Gain' : Eliminated nontunable gain of 1
-//  Block '<S41>/Proportional Gain' : Eliminated nontunable gain of 1
-//  Block '<S82>/Integral Gain' : Eliminated nontunable gain of 1
-//  Block '<S90>/Proportional Gain' : Eliminated nontunable gain of 1
-//  Block '<S131>/Integral Gain' : Eliminated nontunable gain of 1
 //  Block '<S139>/Proportional Gain' : Eliminated nontunable gain of 1
 
 

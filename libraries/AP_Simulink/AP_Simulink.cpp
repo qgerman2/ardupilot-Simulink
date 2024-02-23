@@ -13,12 +13,14 @@
 
 // Convert range [-pi/2, pi/2] to [-4500, 4500]
 #define RAD2SERVO(input) constrain_float(degrees(input) * 50, -4500, 4500)
+#define SERVO2RAD(input) constrain_float(radians(input / 50), -PI/2, PI/2)
 
 extern const AP_HAL::HAL &hal;
 AP_AHRS *ahrs = AP_AHRS::get_singleton();
 AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
 AP_GPS *gps = AP_GPS::get_singleton();
 
+RC_Channels *rc_ch = RC_Channels::get_singleton();
 RC_Channel *ch;
 
 controller control;
@@ -28,7 +30,7 @@ controller::ExtY_controller_T output = {};
 AP_Simulink::AP_Simulink() {}
 
 void AP_Simulink::init() {
-    ch = RC_Channels::get_singleton()->find_channel_for_option(RC_Channel::AUX_FUNC::SCRIPTING_1);
+    ch = rc_ch->find_channel_for_option(RC_Channel::AUX_FUNC::SCRIPTING_1);
     if (ch == nullptr) {
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: No Scripting1 channel found.");
         return;
@@ -37,10 +39,10 @@ void AP_Simulink::init() {
 }
 
 void AP_Simulink::loop() {
-    if (pre_run()) {
-        run();
-    }
+    run();
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
     logging();
+#endif
 }
 
 bool enabled_rc = false;
@@ -91,7 +93,13 @@ void AP_Simulink::initialize() {
 }
 
 void AP_Simulink::run() {
+    bool active = pre_run();
     // ** Set up inputs **
+    // rc
+    input.aileron_rc = aileron_rc;
+    input.elevator_rc = elevator_rc;
+    input.rudder_rc = rudder_rc;
+    input.throttle_rc = throttle_rc;
     // mode
     input.control_mode = control_mode;
     input.command_nav = command_nav;
@@ -118,15 +126,20 @@ void AP_Simulink::run() {
 
     // ** Process outputs **
     output = control.getExternalOutputs();
-    SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, RAD2SERVO(output.aileron));
-    SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, RAD2SERVO(output.elevator));
-    SRV_Channels::set_output_scaled(SRV_Channel::k_rudder, RAD2SERVO(output.rudder));
-    SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, RAD2SERVO(output.aileron));
+    if (active) {
+        SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, RAD2SERVO(output.aileron));
+        SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, RAD2SERVO(output.elevator));
+        SRV_Channels::set_output_scaled(SRV_Channel::k_rudder, RAD2SERVO(output.rudder));
+        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, RAD2SERVO(output.aileron));
+    }
 }
 
 void AP_Simulink::terminate() {
     control.terminate();
 }
+
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+// ** Logging **
 
 bool recording = false;
 int file = -1;
@@ -143,23 +156,68 @@ void AP_Simulink::logging() {
             strftime(write_buf, sizeof(write_buf), "%d %m %y - %H %M %S.txt", gmtime(&now));
             file = AP::FS().open(write_buf, O_WRONLY | O_CREAT | O_TRUNC);
             if (file != 1) {
-                printf("\nCreated log file %s", write_buf);
+                printf("Created log file %s\n", write_buf);
+                // write regular header
+                int pos = 0;
+                int bytes = snprintf(&write_buf[pos], sizeof(write_buf), "%s", log_header);
+                pos = bytes;
+                // write debug outputs
+                int outputs = sizeof(output) / sizeof(real32_T);
+                int debug_outputs = outputs - 4;
+                for (int i = 0; i < debug_outputs; i++) {
+                    bytes = snprintf(&write_buf[pos], sizeof(write_buf) - pos, "debug%-8d", i + 1);
+                    pos = pos + bytes;
+                    // commas
+                    if (i != debug_outputs - 1) {
+                        bytes = snprintf(&write_buf[pos], sizeof(write_buf) - pos, ", ");
+                        pos = pos + bytes;
+                    }
+                }
+                ssize_t len = strnlen(write_buf, sizeof(write_buf));
+                AP::FS().write(file, write_buf, len);
             } else {
-                printf("\nFailed to create log file");
+                printf("Failed to create log file\n");
             }
         } else {
             // Close log file on logging toggled off
             if (file != -1) {
                 AP::FS().close(file);
-                printf("\nClosed log file");
+                printf("Closed log file\n");
             }
         }
     }
     recording = log_ok;
     if (!recording) { return; }
     if (file == -1) { return; }
-
-    snprintf(write_buf, sizeof(write_buf), "\nHOLLAAAA");
+    int pos = 0;
+    // new line
+    int bytes = snprintf(&write_buf[pos], sizeof(write_buf) - pos, "\n");
+    pos = pos + bytes;
+    // write inputs and outputs
+    int extra = 2; // time and active
+    int inputs = sizeof(input) / sizeof(real32_T);
+    int outputs = sizeof(output) / sizeof(real32_T);
+    for (int i = 0; i < extra + inputs + outputs; i++) {
+        float value;
+        if (i == 0) {
+            value = AP_HAL::millis() / 1000.0f;
+        } else if (i == 1) {
+            value = running;
+        } else if (i < inputs + extra) {
+            value = reinterpret_cast<real32_T *>(&input)[i - extra];
+        } else {
+            value = reinterpret_cast<real32_T *>(&output)[i - extra - inputs];
+        }
+        bytes = snprintf(&write_buf[pos], sizeof(write_buf) - pos, "%-13.4f", value);
+        pos = pos + bytes;
+        // add coma
+        if (i != extra + inputs + outputs - 1) {
+            bytes = snprintf(&write_buf[pos], sizeof(write_buf) - pos, ", ");
+            pos = pos + bytes;
+        }
+    }
     ssize_t len = strnlen(write_buf, sizeof(write_buf));
     AP::FS().write(file, write_buf, len);
 }
+
+#endif

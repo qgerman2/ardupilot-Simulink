@@ -6,8 +6,15 @@
 // So they are passed to the external library through 'pre_run'
 
 void AP_Simulink_Plane::pre_loop() {
+    // RC
+    aileron_rc = plane.channel_roll->get_control_in();
+    elevator_rc = plane.channel_pitch->get_control_in();
+    rudder_rc = plane.channel_rudder->get_control_in();
+    throttle_rc = plane.channel_throttle->get_control_in();
+
     // Sensor
     altitude = plane.tecs_hgt_afe();
+
     // Navigation variables
     control_mode = plane.control_mode->mode_number();
     command_nav = plane.mission.get_current_nav_cmd().id;

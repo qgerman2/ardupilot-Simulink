@@ -4,7 +4,40 @@
 
 class AP_Simulink {
 public:
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+    char log_header[346] =
+        "time         , "
+        "active       , "
+        "control_mode , "
+        "commmand_nav , "
+        "roll         , "
+        "pitch        , "
+        "yaw          , "
+        "altitude     , "
+        "airspeed     , "
+        "yaw_nav      , "
+        "yaw_error    , "
+        "altitude_nav , "
+        "roll_L1      , "
+        "pitch_TECS   , "
+        "throttle_TECS, "
+        "aileron_rc   , "
+        "elevator_rc  , "
+        "rudder_rc    , "
+        "throttle_rc  , "
+        "aileron      , "
+        "elevator     , "
+        "rudder       , "
+        "throttle     , ";
+#endif
+
     // Check ArduPlane/AP_Simulink.cpp for details on these variables
+    // rc input
+    float aileron_rc;
+    float elevator_rc;
+    float rudder_rc;
+    float throttle_rc;
+
     // Sensors
     float altitude;
 
