@@ -40,24 +40,24 @@ void AP_Simulink::init() {
 }
 
 void AP_Simulink::loop() {
-    run();
+    check();
+    step();
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
     logging();
 #endif
 }
 
-bool enabled_rc = false;
-bool enabled_nav = false;
-bool running = false;
-bool AP_Simulink::pre_run() {
+bool AP_Simulink::check() {
     // Check if the Scripting1 RC switch is on
     bool rc_ok = true;
     if ((ch == nullptr) || (ch->get_aux_switch_pos() != RC_Channel::AuxSwitchPos::HIGH)) {
         rc_ok = false;
     }
-    (enabled_rc != rc_ok && rc_ok)
-        ? GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Enabled RC Switch.")
-        : GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Disabled RC Switch.");
+    if (enabled_rc != rc_ok) {
+        (rc_ok)
+            ? GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Enabled RC Switch.")
+            : GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Disabled RC Switch.");
+    }
     enabled_rc = rc_ok;
 
     // Check if navigation conditions are met
@@ -66,9 +66,11 @@ bool AP_Simulink::pre_run() {
     if (control_mode != Mode::Number::AUTO || control_mode != Mode::Number::STABILIZE) { nav_ok = false; }
     // during regular waypoints
     if (command_nav != MAV_CMD_NAV_WAYPOINT) { nav_ok = false; }
-    ((enabled_nav != nav_ok) && nav_ok)
-        ? GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Entered navigation conditions.")
-        : GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Exited navigation conditions.");
+    if (enabled_nav != nav_ok) {
+        (nav_ok)
+            ? GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Entered navigation conditions.")
+            : GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Exited navigation conditions.");
+    }
     enabled_nav = nav_ok;
 
     // Run if both checks are true
@@ -93,8 +95,7 @@ void AP_Simulink::initialize() {
     control.initialize();
 }
 
-void AP_Simulink::run() {
-    bool active = pre_run();
+void AP_Simulink::step() {
     // ** Set up inputs **
     // rc
     input.aileron_rc = SERVO2RAD(aileron_rc);
@@ -127,12 +128,10 @@ void AP_Simulink::run() {
 
     // ** Process outputs **
     output = control.getExternalOutputs();
-    if (active) {
-        SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, RAD2SERVO(output.aileron));
-        SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, RAD2SERVO(output.elevator));
-        SRV_Channels::set_output_scaled(SRV_Channel::k_rudder, RAD2SERVO(output.rudder));
-        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, output.throttle);
-    }
+    servos.aileron = RAD2SERVO(output.aileron);
+    servos.elevator = RAD2SERVO(output.elevator);
+    servos.rudder = RAD2SERVO(output.rudder);
+    servos.throttle = output.throttle;
 }
 
 void AP_Simulink::terminate() {

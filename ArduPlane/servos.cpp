@@ -1005,7 +1005,7 @@ void Plane::servos_output(void)
     }
 
     // simulink
-    simulink.pre_loop();
+    simulink.set_servos();
 
     SRV_Channels::calc_pwm();
 

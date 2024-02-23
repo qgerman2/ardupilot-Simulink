@@ -32,3 +32,12 @@ void AP_Simulink_Plane::pre_loop() {
 void AP_Simulink_Plane::reset_pid() {
     plane.last_stabilize_ms = 0;
 }
+
+void AP_Simulink_Plane::set_servos() {
+    if (running) {
+        SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, servos.aileron);
+        SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, servos.elevator);
+        SRV_Channels::set_output_scaled(SRV_Channel::k_rudder, servos.rudder);
+        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, servos.throttle);
+    }
+}
