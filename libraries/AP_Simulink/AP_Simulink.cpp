@@ -4,6 +4,7 @@
 #include "controller.h"
 #include <GCS_MAVLink/GCS.h>
 #include <AP_AHRS/AP_AHRS.h>
+#include <AP_Arming/AP_Arming.h>
 #include <AP_Airspeed/AP_Airspeed.h>
 #include <SRV_Channel/SRV_Channel.h>
 #include <RC_Channel/RC_Channel.h>
@@ -13,7 +14,7 @@
 
 // Convert range [-pi/2, pi/2] to [-4500, 4500]
 #define RAD2SERVO(input) constrain_float(degrees(input) * 50, -4500, 4500)
-#define SERVO2RAD(input) constrain_float(radians(input / 50), -PI/2, PI/2)
+#define SERVO2RAD(input) constrain_float(radians(input / 50), -M_PI/2, M_PI/2)
 
 extern const AP_HAL::HAL &hal;
 AP_AHRS *ahrs = AP_AHRS::get_singleton();
@@ -96,9 +97,9 @@ void AP_Simulink::run() {
     bool active = pre_run();
     // ** Set up inputs **
     // rc
-    input.aileron_rc = aileron_rc;
-    input.elevator_rc = elevator_rc;
-    input.rudder_rc = rudder_rc;
+    input.aileron_rc = SERVO2RAD(aileron_rc);
+    input.elevator_rc = SERVO2RAD(elevator_rc);
+    input.rudder_rc = SERVO2RAD(rudder_rc);
     input.throttle_rc = throttle_rc;
     // mode
     input.control_mode = control_mode;
@@ -130,7 +131,7 @@ void AP_Simulink::run() {
         SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, RAD2SERVO(output.aileron));
         SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, RAD2SERVO(output.elevator));
         SRV_Channels::set_output_scaled(SRV_Channel::k_rudder, RAD2SERVO(output.rudder));
-        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, RAD2SERVO(output.aileron));
+        SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, output.throttle);
     }
 }
 
@@ -147,6 +148,7 @@ char write_buf[1500];
 void AP_Simulink::logging() {
     // Check if we should log and open/close file on condition changes
     bool log_ok = true;
+    if (!AP::arming().is_armed_and_safety_off()) { log_ok = false; }
     if (control_mode != Mode::Number::AUTO && control_mode != Mode::Number::STABILIZE) { log_ok = false; }
     if (recording != log_ok) {
         if (log_ok) {
