@@ -289,6 +289,12 @@ struct PACKED log_CMDI {
 // units and "Format characters" for field type information
 const struct LogStructure Plane::log_structure[] = {
     LOG_COMMON_STRUCTURES,
+    LOG_SIMULINK_STRUCTURE_1,
+    LOG_SIMULINK_STRUCTURE_2,
+    LOG_SIMULINK_STRUCTURE_3,
+    LOG_SIMULINK_STRUCTURE_4,
+    LOG_SIMULINK_STRUCTURE_5,
+    LOG_SIMULINK_STRUCTURE_6,
 
 // @LoggerMessage: CTUN
 // @Description: Control Tuning information

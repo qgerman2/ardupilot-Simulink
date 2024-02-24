@@ -7,9 +7,9 @@
 //
 // Code generated for Simulink model 'controller'.
 //
-// Model version                  : 1.49
+// Model version                  : 1.126
 // Simulink Coder version         : 23.2 (R2023b) 01-Aug-2023
-// C/C++ source code generated on : Fri Feb 23 15:40:00 2024
+// C/C++ source code generated on : Sat Feb 24 03:52:12 2024
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -25,184 +25,203 @@
 // Model step function
 void controller::step()
 {
+  float rtb_Add;
   float rtb_Add1;
   float rtb_FilterCoefficient;
-  float rtb_FilterCoefficient_i;
-  float rtb_FilterCoefficient_j;
-  float rtb_Filter_d;
+  float rtb_FilterCoefficient_d;
+  float rtb_FilterCoefficient_o;
   float rtb_Integrator_l;
 
-  // Saturate: '<S3>/Saturation' incorporates:
-  //   Inport: '<Root>/yaw_error'
+  // Outport: '<Root>/enable' incorporates:
+  //   Constant: '<S1>/AUTO'
+  //   Constant: '<S1>/NAV_WAYPOINT'
+  //   Constant: '<S1>/STABILIZE'
+  //   Inport: '<Root>/command_nav'
+  //   Inport: '<Root>/control_mode'
+  //   Inport: '<Root>/enable_rc'
+  //   Logic: '<S1>/AND1'
+  //   Logic: '<S1>/AND2'
+  //   Logic: '<S1>/OR'
+  //   RelationalOperator: '<S1>/Equal'
+  //   RelationalOperator: '<S1>/Equal1'
+  //   RelationalOperator: '<S1>/Equal2'
 
-  if (controller_U.yaw_error > 0.52359879F) {
-    rtb_Filter_d = 0.52359879F;
-  } else if (controller_U.yaw_error < -0.52359879F) {
-    rtb_Filter_d = -0.52359879F;
-  } else {
-    rtb_Filter_d = controller_U.yaw_error;
+  controller_Y.enable_p = (controller_U.enable_rc && (((controller_U.command_nav
+    == 16.0F) && (controller_U.control_mode == 10.0F)) ||
+    (controller_U.control_mode == 2.0F)));
+
+  // Outputs for Enabled SubSystem: '<S2>/AUTO controller' incorporates:
+  //   EnablePort: '<S4>/Enable'
+
+  // RelationalOperator: '<S2>/Relational Operator' incorporates:
+  //   Constant: '<S2>/AUTO'
+  //   Inport: '<Root>/control_mode'
+
+  if (controller_U.control_mode == 10.0F) {
+    // Merge: '<S2>/Merge2' incorporates:
+    //   Constant: '<S8>/Constant'
+    //   SignalConversion generated from: '<S4>/airspeed_obj'
+
+    controller_DW.Merge2 = 65.0F;
+
+    // Gain: '<S6>/Gain' incorporates:
+    //   Inport: '<Root>/altitude'
+    //   Inport: '<Root>/altitude_nav'
+    //   Sum: '<S6>/Add'
+
+    controller_DW.Merge1 = (controller_U.altitude_nav - controller_U.altitude) *
+      0.025F;
+
+    // Saturate: '<S6>/Saturation'
+    if (controller_DW.Merge1 > 0.52359879F) {
+      // Gain: '<S6>/Gain' incorporates:
+      //   Merge: '<S2>/Merge1'
+
+      controller_DW.Merge1 = 0.52359879F;
+    } else if (controller_DW.Merge1 < -0.52359879F) {
+      // Gain: '<S6>/Gain' incorporates:
+      //   Merge: '<S2>/Merge1'
+
+      controller_DW.Merge1 = -0.52359879F;
+    }
+
+    // End of Saturate: '<S6>/Saturation'
+
+    // Saturate: '<S7>/Saturation' incorporates:
+    //   Inport: '<Root>/yaw_error'
+
+    if (controller_U.yaw_error > 0.52359879F) {
+      // Merge: '<S2>/Merge'
+      controller_DW.Merge = 0.52359879F;
+    } else if (controller_U.yaw_error < -0.52359879F) {
+      // Merge: '<S2>/Merge'
+      controller_DW.Merge = -0.52359879F;
+    } else {
+      // Merge: '<S2>/Merge'
+      controller_DW.Merge = controller_U.yaw_error;
+    }
+
+    // End of Saturate: '<S7>/Saturation'
   }
 
-  // End of Saturate: '<S3>/Saturation'
+  // End of RelationalOperator: '<S2>/Relational Operator'
+  // End of Outputs for SubSystem: '<S2>/AUTO controller'
 
-  // Sum: '<S3>/Add' incorporates:
+  // Outputs for Enabled SubSystem: '<S2>/STABILIZE controller' incorporates:
+  //   EnablePort: '<S5>/Enable'
+
+  // RelationalOperator: '<S2>/Relational Operator1' incorporates:
+  //   Constant: '<S2>/STABILIZE'
+  //   Inport: '<Root>/control_mode'
+
+  if (controller_U.control_mode == 2.0F) {
+    // Merge: '<S2>/Merge' incorporates:
+    //   Gain: '<S5>/Gain'
+    //   Inport: '<Root>/aileron_rc'
+
+    controller_DW.Merge = 0.5F * controller_U.aileron_rc;
+
+    // Gain: '<S6>/Gain' incorporates:
+    //   Gain: '<S5>/Gain1'
+    //   Inport: '<Root>/elevator_rc'
+    //   Merge: '<S2>/Merge1'
+
+    controller_DW.Merge1 = 0.5F * controller_U.elevator_rc;
+
+    // Merge: '<S2>/Merge2' incorporates:
+    //   Gain: '<S5>/Gain2'
+    //   Inport: '<Root>/throttle_rc'
+
+    controller_DW.Merge2 = controller_U.throttle_rc;
+  }
+
+  // End of RelationalOperator: '<S2>/Relational Operator1'
+  // End of Outputs for SubSystem: '<S2>/STABILIZE controller'
+
+  // Sum: '<S10>/Add' incorporates:
   //   Inport: '<Root>/roll'
 
-  rtb_Integrator_l = rtb_Filter_d - controller_U.roll;
+  rtb_Integrator_l = controller_DW.Merge - controller_U.roll;
 
-  // Gain: '<S137>/Filter Coefficient' incorporates:
-  //   DiscreteIntegrator: '<S129>/Filter'
-  //   Gain: '<S128>/Derivative Gain'
-  //   Sum: '<S129>/SumD'
+  // Gain: '<S96>/Filter Coefficient' incorporates:
+  //   DiscreteIntegrator: '<S88>/Filter'
+  //   Gain: '<S87>/Derivative Gain'
+  //   Sum: '<S88>/SumD'
 
   rtb_FilterCoefficient = (0.0F * rtb_Integrator_l - controller_DW.Filter_DSTATE)
     * 100.0F;
 
-  // Sum: '<S143>/Sum' incorporates:
-  //   DiscreteIntegrator: '<S134>/Integrator'
+  // Outport: '<Root>/aileron' incorporates:
+  //   DiscreteIntegrator: '<S93>/Integrator'
+  //   Sum: '<S102>/Sum'
 
-  rtb_Add1 = (rtb_Integrator_l + controller_DW.Integrator_DSTATE) +
+  controller_Y.aileron = (rtb_Integrator_l + controller_DW.Integrator_DSTATE) +
     rtb_FilterCoefficient;
 
-  // Saturate: '<S141>/Saturation'
-  if (rtb_Add1 > 1.57079637F) {
-    rtb_Add1 = 1.57079637F;
-  } else if (rtb_Add1 < -1.57079637F) {
-    rtb_Add1 = -1.57079637F;
-  }
-
-  // End of Saturate: '<S141>/Saturation'
-
-  // Outport: '<Root>/aileron'
-  controller_Y.aileron = rtb_Add1;
-
-  // Outport: '<Root>/rudder' incorporates:
-  //   Gain: '<Root>/Gain'
-
-  controller_Y.rudder = 0.5F * rtb_Add1;
-
-  // Gain: '<S2>/Gain' incorporates:
-  //   Inport: '<Root>/altitude'
-  //   Inport: '<Root>/altitude_nav'
-  //   Sum: '<S2>/Add'
-
-  rtb_Add1 = (controller_U.altitude_nav - controller_U.altitude) * 3.0F;
-
-  // Outport: '<Root>/debug' incorporates:
-  //   Constant: '<S1>/Constant'
-  //   Inport: '<Root>/airspeed'
-  //   Sum: '<S1>/Add'
-
-  controller_Y.debug[0] = rtb_Filter_d;
-  controller_Y.debug[1] = rtb_Integrator_l;
-  controller_Y.debug[2] = rtb_Add1;
-  controller_Y.debug[3] = 50.0F - controller_U.airspeed;
-
-  // Gain: '<S30>/Derivative Gain' incorporates:
-  //   Constant: '<S1>/Constant'
-  //   Gain: '<S33>/Integral Gain'
-  //   Inport: '<Root>/airspeed'
-  //   Sum: '<S1>/Add'
-
-  rtb_Filter_d = (50.0F - controller_U.airspeed) * 0.0F;
-
-  // Gain: '<S39>/Filter Coefficient' incorporates:
-  //   DiscreteIntegrator: '<S31>/Filter'
-  //   Gain: '<S30>/Derivative Gain'
-  //   Sum: '<S31>/SumD'
-
-  rtb_FilterCoefficient_i = (rtb_Filter_d - controller_DW.Filter_DSTATE_p) *
-    100.0F;
-
-  // Sum: '<S45>/Sum' incorporates:
-  //   Constant: '<S1>/Constant'
-  //   DiscreteIntegrator: '<S36>/Integrator'
-  //   Gain: '<S41>/Proportional Gain'
-  //   Inport: '<Root>/airspeed'
-  //   Sum: '<S1>/Add'
-
-  controller_Y.throttle = ((50.0F - controller_U.airspeed) * 0.1F +
-    controller_DW.Integrator_DSTATE_i) + rtb_FilterCoefficient_i;
-
-  // Saturate: '<S43>/Saturation'
-  if (controller_Y.throttle > 100.0F) {
-    // Sum: '<S45>/Sum' incorporates:
-    //   Outport: '<Root>/throttle'
-
-    controller_Y.throttle = 100.0F;
-  } else if (controller_Y.throttle < 0.0F) {
-    // Sum: '<S45>/Sum' incorporates:
-    //   Outport: '<Root>/throttle'
-
-    controller_Y.throttle = 0.0F;
-  }
-
-  // End of Saturate: '<S43>/Saturation'
-
-  // Saturate: '<S2>/Saturation'
-  if (rtb_Add1 > 0.52359879F) {
-    rtb_Add1 = 0.52359879F;
-  } else if (rtb_Add1 < -0.52359879F) {
-    rtb_Add1 = -0.52359879F;
-  }
-
-  // Sum: '<S2>/Add1' incorporates:
+  // Sum: '<S9>/Add1' incorporates:
   //   Inport: '<Root>/pitch'
-  //   Saturate: '<S2>/Saturation'
 
-  rtb_Add1 -= controller_U.pitch;
+  rtb_Add1 = controller_DW.Merge1 - controller_U.pitch;
 
-  // Gain: '<S88>/Filter Coefficient' incorporates:
-  //   DiscreteIntegrator: '<S80>/Filter'
-  //   Gain: '<S79>/Derivative Gain'
-  //   Sum: '<S80>/SumD'
+  // Gain: '<S47>/Filter Coefficient' incorporates:
+  //   DiscreteIntegrator: '<S39>/Filter'
+  //   Sum: '<S39>/SumD'
 
-  rtb_FilterCoefficient_j = (0.0F * rtb_Add1 - controller_DW.Filter_DSTATE_o) *
-    100.0F;
+  rtb_FilterCoefficient_d = (rtb_Add1 - controller_DW.Filter_DSTATE_e) * 100.0F;
 
-  // Sum: '<S94>/Sum' incorporates:
-  //   DiscreteIntegrator: '<S85>/Integrator'
-  //   Gain: '<S90>/Proportional Gain'
+  // Outport: '<Root>/elevator' incorporates:
+  //   DiscreteIntegrator: '<S44>/Integrator'
+  //   Sum: '<S53>/Sum'
 
-  controller_Y.elevator = (0.1F * rtb_Add1 + controller_DW.Integrator_DSTATE_e)
-    + rtb_FilterCoefficient_j;
+  controller_Y.elevator = (rtb_Add1 + controller_DW.Integrator_DSTATE_f) +
+    rtb_FilterCoefficient_d;
 
-  // Saturate: '<S92>/Saturation'
-  if (controller_Y.elevator > 1.57079637F) {
-    // Sum: '<S94>/Sum' incorporates:
-    //   Outport: '<Root>/elevator'
+  // Sum: '<S11>/Add' incorporates:
+  //   Inport: '<Root>/airspeed'
 
-    controller_Y.elevator = 1.57079637F;
-  } else if (controller_Y.elevator < -1.57079637F) {
-    // Sum: '<S94>/Sum' incorporates:
-    //   Outport: '<Root>/elevator'
+  rtb_Add = controller_DW.Merge2 - controller_U.airspeed;
 
-    controller_Y.elevator = -1.57079637F;
-  }
+  // Gain: '<S145>/Filter Coefficient' incorporates:
+  //   DiscreteIntegrator: '<S137>/Filter'
+  //   Sum: '<S137>/SumD'
 
-  // End of Saturate: '<S92>/Saturation'
+  rtb_FilterCoefficient_o = (rtb_Add - controller_DW.Filter_DSTATE_d) * 100.0F;
 
-  // Update for DiscreteIntegrator: '<S129>/Filter'
-  controller_DW.Filter_DSTATE += 0.01F * rtb_FilterCoefficient;
+  // Outport: '<Root>/throttle' incorporates:
+  //   DiscreteIntegrator: '<S142>/Integrator'
+  //   Sum: '<S151>/Sum'
 
-  // Update for DiscreteIntegrator: '<S134>/Integrator' incorporates:
-  //   Gain: '<S131>/Integral Gain'
+  controller_Y.throttle = (rtb_Add + controller_DW.Integrator_DSTATE_a) +
+    rtb_FilterCoefficient_o;
+
+  // Outport: '<Root>/airspeed_obj'
+  controller_Y.airspeed_obj = controller_DW.Merge2;
+
+  // Outport: '<Root>/pitch_obj'
+  controller_Y.pitch_obj = controller_DW.Merge1;
+
+  // Outport: '<Root>/roll_obj'
+  controller_Y.roll_obj = controller_DW.Merge;
+
+  // Update for DiscreteIntegrator: '<S93>/Integrator' incorporates:
+  //   Gain: '<S90>/Integral Gain'
 
   controller_DW.Integrator_DSTATE += 0.0F * rtb_Integrator_l * 0.01F;
 
-  // Update for DiscreteIntegrator: '<S36>/Integrator'
-  controller_DW.Integrator_DSTATE_i += rtb_Filter_d * 0.01F;
+  // Update for DiscreteIntegrator: '<S88>/Filter'
+  controller_DW.Filter_DSTATE += 0.01F * rtb_FilterCoefficient;
 
-  // Update for DiscreteIntegrator: '<S31>/Filter'
-  controller_DW.Filter_DSTATE_p += 0.01F * rtb_FilterCoefficient_i;
+  // Update for DiscreteIntegrator: '<S44>/Integrator'
+  controller_DW.Integrator_DSTATE_f += 0.01F * rtb_Add1;
 
-  // Update for DiscreteIntegrator: '<S85>/Integrator' incorporates:
-  //   Gain: '<S82>/Integral Gain'
+  // Update for DiscreteIntegrator: '<S39>/Filter'
+  controller_DW.Filter_DSTATE_e += 0.01F * rtb_FilterCoefficient_d;
 
-  controller_DW.Integrator_DSTATE_e += 0.0F * rtb_Add1 * 0.01F;
+  // Update for DiscreteIntegrator: '<S142>/Integrator'
+  controller_DW.Integrator_DSTATE_a += 0.01F * rtb_Add;
 
-  // Update for DiscreteIntegrator: '<S80>/Filter'
-  controller_DW.Filter_DSTATE_o += 0.01F * rtb_FilterCoefficient_j;
+  // Update for DiscreteIntegrator: '<S137>/Filter'
+  controller_DW.Filter_DSTATE_d += 0.01F * rtb_FilterCoefficient_o;
 }
 
 // Model initialize function

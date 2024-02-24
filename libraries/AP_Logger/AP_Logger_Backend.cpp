@@ -484,7 +484,7 @@ void AP_Logger_Backend::PrepForArming()
 
 bool AP_Logger_Backend::Write_MessageF(const char *fmt, ...)
 {
-    char msg[65] {}; // sizeof(log_Message.msg) + null-termination
+    char msg[LS_LABELS_SIZE] {}; // sizeof(log_Message.msg) + null-termination
 
     va_list ap;
     va_start(ap, fmt);

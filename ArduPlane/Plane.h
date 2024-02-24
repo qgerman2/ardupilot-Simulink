@@ -308,7 +308,6 @@ private:
 
     // Simulink
     AP_Simulink_Plane simulink;
-    void simulink_loop() {simulink.pre_loop();};
 
     // Failsafe
     struct {

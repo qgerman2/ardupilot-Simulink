@@ -25,7 +25,7 @@ void AP_Simulink_Plane::pre_loop() {
     // High level controller variables
     roll_L1 = radians(plane.nav_roll_cd * 0.01f);
     pitch_TECS = radians(plane.nav_pitch_cd * 0.01f);
-    throttle_TECS = plane.TECS_controller.get_throttle_demand();
+    airspeed_TECS = plane.TECS_controller._TAS_dem;
     loop();
 }
 
