@@ -109,6 +109,7 @@ void AP_Simulink::step() {
 
 // ** Logging **
 void AP_Simulink::logging() {
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
     if (!output.enable_p) { return; }
     uint64_t time_us = AP::dal().micros64();
 
@@ -173,4 +174,5 @@ void AP_Simulink::logging() {
             roll_obj : output.roll_obj
     };
     AP::logger().WriteBlock(&pkt6, sizeof(pkt6));
+#endif
 }
