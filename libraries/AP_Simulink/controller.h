@@ -7,9 +7,9 @@
 //
 // Code generated for Simulink model 'controller'.
 //
-// Model version                  : 1.126
+// Model version                  : 1.131
 // Simulink Coder version         : 23.2 (R2023b) 01-Aug-2023
-// C/C++ source code generated on : Sat Feb 24 03:52:12 2024
+// C/C++ source code generated on : Sat Feb 24 04:38:47 2024
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -157,14 +157,10 @@ class controller final
 //-
 //  These blocks were eliminated from the model due to optimizations:
 //
-//  Block '<S7>/Gain' : Eliminated nontunable gain of 1
-//  Block '<S38>/Derivative Gain' : Eliminated nontunable gain of 1
-//  Block '<S41>/Integral Gain' : Eliminated nontunable gain of 1
 //  Block '<S49>/Proportional Gain' : Eliminated nontunable gain of 1
 //  Block '<S98>/Proportional Gain' : Eliminated nontunable gain of 1
 //  Block '<S136>/Derivative Gain' : Eliminated nontunable gain of 1
 //  Block '<S139>/Integral Gain' : Eliminated nontunable gain of 1
-//  Block '<S147>/Proportional Gain' : Eliminated nontunable gain of 1
 
 
 //-
