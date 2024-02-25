@@ -3,6 +3,9 @@
 #include <AP_Math/AP_Math.h>
 #include <AP_Logger/AP_Logger.h>
 
+#define Q(x) #x
+#define QUOTE(x) Q(x)
+
 #define LOG_SIMULINK_1 248
 struct PACKED log_Simulink_1 {
     LOG_PACKET_HEADER;

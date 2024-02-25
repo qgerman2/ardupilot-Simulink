@@ -1,17 +1,16 @@
-#include <stdio.h>
-#include <ctime>
 #include "AP_Simulink/AP_Simulink.h"
-#include "controller.h"
 #include <GCS_MAVLink/GCS.h>
 #include <AP_AHRS/AP_AHRS.h>
-#include <AP_Arming/AP_Arming.h>
 #include <AP_Airspeed/AP_Airspeed.h>
 #include <SRV_Channel/SRV_Channel.h>
 #include <RC_Channel/RC_Channel.h>
 #include <AP_Logger/AP_Logger.h>
-#include <AP_GPS/AP_GPS.h>
 #include <AP_DAL/AP_DAL.h>
 #include <../ArduPlane/mode.h>
+
+#define SIMULINK_MODEL passthrough
+
+#include QUOTE(SIMULINK_MODEL/SIMULINK_MODEL.cpp)
 
 // Convert range [-pi/2, pi/2] to [-4500, 4500]
 #define RAD2SERVO(input) constrain_float(degrees(input) * 50, -4500, 4500)
@@ -23,10 +22,10 @@ AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
 AP_GPS *gps = AP_GPS::get_singleton();
 RC_Channels *rc_ch = RC_Channels::get_singleton();
 RC_Channel *ch;
-controller control;
-controller::ExtU_controller_T input = {};
-controller::ExtY_controller_T output = {};
-controller::DW_controller_T state = {};
+SIMULINK_MODEL control;
+SIMULINK_MODEL::ExtU_T input = {};
+SIMULINK_MODEL::ExtY_T output = {};
+SIMULINK_MODEL::DW_T state = {};
 
 void AP_Simulink::init() {
     ch = rc_ch->find_channel_for_option(RC_Channel::AUX_FUNC::SCRIPTING_1);
@@ -34,7 +33,7 @@ void AP_Simulink::init() {
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: No Scripting1 channel found.");
         return;
     }
-    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Library initialized.");
+    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Initialized '" QUOTE(SIMULINK_MODEL) "' model.");
 }
 
 void AP_Simulink::loop() {
@@ -49,6 +48,7 @@ void AP_Simulink::step() {
         // Clears integrators
         state = {};
         control.setDWork(&state);
+        control.initialize();
     }
 
     // ** Set up inputs **
@@ -99,6 +99,7 @@ void AP_Simulink::step() {
             // Switched from custom controller to ardupilot's
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Disabled custom controller.");
             reset_pid();
+            control.terminate();
         } else {
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Enabled custom controller.");
         }
