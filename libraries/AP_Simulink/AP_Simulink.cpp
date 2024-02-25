@@ -17,19 +17,21 @@
 #define SERVO2RAD(input) constrain_float(radians(input / 50), -M_PI/2, M_PI/2)
 
 extern const AP_HAL::HAL &hal;
+
 AP_AHRS *ahrs = AP_AHRS::get_singleton();
 AP_Airspeed *airspeed = AP_Airspeed::get_singleton();
 AP_GPS *gps = AP_GPS::get_singleton();
 RC_Channels *rc_ch = RC_Channels::get_singleton();
-RC_Channel *ch;
+RC_Channel *simulink_ch;
+
 SIMULINK_MODEL control;
 SIMULINK_MODEL::ExtU_T input = {};
 SIMULINK_MODEL::ExtY_T output = {};
 SIMULINK_MODEL::DW_T state = {};
 
 void AP_Simulink::init() {
-    ch = rc_ch->find_channel_for_option(RC_Channel::AUX_FUNC::SCRIPTING_1);
-    if (ch == nullptr) {
+    simulink_ch = rc_ch->find_channel_for_option(RC_Channel::AUX_FUNC::SCRIPTING_1);
+    if (simulink_ch == nullptr) {
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: No Scripting1 channel found.");
         return;
     }
@@ -71,7 +73,7 @@ void AP_Simulink::step() {
     input.elevator_rc = SERVO2RAD(elevator_rc);
     input.rudder_rc = SERVO2RAD(rudder_rc);
     input.throttle_rc = throttle_rc;
-    input.enable_rc = ((ch != nullptr) && (ch->get_aux_switch_pos() == RC_Channel::AuxSwitchPos::HIGH));
+    input.enable_rc = ((simulink_ch != nullptr) && (simulink_ch->get_aux_switch_pos() == RC_Channel::AuxSwitchPos::HIGH));
     // high level controllers
     input.roll_L1 = roll_L1;
     input.pitch_TECS = pitch_TECS;

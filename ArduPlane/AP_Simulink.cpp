@@ -3,7 +3,7 @@
 
 // These files in the ArduPlane folder are needed because
 // 'Plane.h' can't be accessed on an external library
-// So they are passed to the external library through 'pre_run'
+// So they are passed to the external library through 'pre_loop'
 
 void AP_Simulink_Plane::pre_loop() {
     // RC

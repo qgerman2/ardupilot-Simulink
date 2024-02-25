@@ -128,6 +128,16 @@ void AP_ExternalAHRS_HITL::on_ahrs(uint32_t t) {
     // this can happen if the plane is parked or in calibration
     ahrs_msg.baro.pressure_pa += random_float();
     ahrs_msg.baro.temperature += random_float();
+    // scale compass reading magnitude to match gps location
+    float intensity;
+    float declination;
+    float inclination;
+    if (AP_Declination::get_mag_field_ef(
+        ahrs_msg.gps.latitude * 1e-7f,
+        ahrs_msg.gps.longitude * 1e-7f,
+        intensity, declination, inclination)) {
+        ahrs_msg.mag.field *= (intensity * 1000);
+    }
     on_ahrs_time = t;
     ahrs_count++;
 }
