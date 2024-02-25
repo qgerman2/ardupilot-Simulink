@@ -142,6 +142,11 @@ public:
         float temperature;
     } ins_data_message_t;
 
+    typedef struct {
+        float differential_pressure; // Pa
+        float temperature; // degC
+    } airspeed_data_message_t;
+
 protected:
 
     enum class OPTIONS {

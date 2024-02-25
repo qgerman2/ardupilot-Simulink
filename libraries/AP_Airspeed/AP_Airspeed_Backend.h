@@ -44,7 +44,9 @@ public:
     virtual bool get_airspeed(float& airspeed) {return false;}
 
     virtual void handle_msp(const MSP::msp_airspeed_data_message_t &pkt) {}
-
+#if AP_AIRSPEED_EXTERNAL_ENABLED
+    virtual void handle_external(const AP_ExternalAHRS::airspeed_data_message_t &pkt) {}
+#endif
 #if AP_AIRSPEED_HYGROMETER_ENABLE
     // optional hygrometer support
     virtual bool get_hygrometer(uint32_t &last_sample_ms, float &temperature, float &humidity) { return false; }

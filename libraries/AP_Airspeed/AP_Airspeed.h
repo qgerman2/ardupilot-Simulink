@@ -5,6 +5,10 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
 
+#if AP_AIRSPEED_EXTERNAL_ENABLED
+#include <AP_ExternalAHRS/AP_ExternalAHRS.h>
+#endif
+
 class AP_Airspeed_Backend;
 
 class AP_Airspeed_Params {
@@ -181,6 +185,7 @@ public:
         TYPE_NMEA_WATER=13,
         TYPE_MSP=14,
         TYPE_I2C_ASP5033=15,
+        TYPE_EXTERNAL=16,
         TYPE_SITL=100,
     };
 
@@ -200,6 +205,10 @@ public:
 
 #if AP_AIRSPEED_MSP_ENABLED
     void handle_msp(const MSP::msp_airspeed_data_message_t &pkt);
+#endif
+
+#if AP_AIRSPEED_EXTERNAL_ENABLED
+    void handle_external(const AP_ExternalAHRS::airspeed_data_message_t &pkt);
 #endif
 
     enum class CalibrationState {

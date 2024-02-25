@@ -45,6 +45,7 @@ private:
         AP_ExternalAHRS::ins_data_message_t ins{
             .accel = Vector3f(0, 0, -1000)
         };
+        AP_ExternalAHRS::airspeed_data_message_t aspd{};
         float q1, q2, q3, q4;
     } ahrs_msg;
 

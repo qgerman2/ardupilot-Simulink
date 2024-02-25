@@ -147,6 +147,7 @@ void AP_ExternalAHRS_HITL::push_sensors() {
     AP::compass().handle_external(ahrs_msg.mag);
     AP::baro().handle_external(ahrs_msg.baro);
     AP::gps().handle_external(ahrs_msg.gps);
+    AP::airspeed()->handle_external(ahrs_msg.aspd);
 }
 
 void AP_ExternalAHRS_HITL::push_ekf() {
