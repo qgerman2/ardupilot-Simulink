@@ -214,7 +214,7 @@ void AP_ExternalAHRS_HITL::send_rc() {
     if (reset_step > 0) {
         rc_msg.state = reset_step + 1;
     } else {
-        if (AP::arming().is_armed_and_safety_off()) {
+        if (AP::arming().is_armed()) {
             rc_msg.state = 1;
         } else {
             rc_msg.state = 0;
