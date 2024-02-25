@@ -8,7 +8,7 @@
 #include <AP_DAL/AP_DAL.h>
 #include <../ArduPlane/mode.h>
 
-#define SIMULINK_MODEL passthrough
+#define SIMULINK_MODEL my_controller
 
 #include QUOTE(SIMULINK_MODEL/SIMULINK_MODEL.cpp)
 
@@ -36,6 +36,7 @@ void AP_Simulink::init() {
         return;
     }
     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Initialized '" QUOTE(SIMULINK_MODEL) "' model.");
+    control.initialize();
 }
 
 void AP_Simulink::loop() {
@@ -45,14 +46,6 @@ void AP_Simulink::loop() {
 
 bool was_running = false;
 void AP_Simulink::step() {
-    if (!was_running) {
-        // Reset simulation state while not running
-        // Clears integrators
-        state = {};
-        control.setDWork(&state);
-        control.initialize();
-    }
-
     // ** Set up inputs **
     // mode
     input.control_mode = control_mode;
@@ -72,7 +65,7 @@ void AP_Simulink::step() {
     input.aileron_rc = SERVO2RAD(aileron_rc);
     input.elevator_rc = SERVO2RAD(elevator_rc);
     input.rudder_rc = SERVO2RAD(rudder_rc);
-    input.throttle_rc = throttle_rc;
+    input.throttle_rc = throttle_rc; // 0 - 100
     input.enable_rc = ((simulink_ch != nullptr) && (simulink_ch->get_aux_switch_pos() == RC_Channel::AuxSwitchPos::HIGH));
     // high level controllers
     input.roll_L1 = roll_L1;
@@ -94,16 +87,17 @@ void AP_Simulink::step() {
         SRV_Channels::set_output_scaled(SRV_Channel::k_throttle, output.throttle);
     }
 
-    // ** Report **
-
     if (output.enable_p != was_running) {
         if (was_running) {
             // Switched from custom controller to ardupilot's
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Disabled custom controller.");
             reset_pid();
-            control.terminate();
         } else {
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Enabled custom controller.");
+            control.terminate();
+            state = {};
+            control.setDWork(&state);
+            control.initialize();
         }
     }
     was_running = output.enable_p;
@@ -112,8 +106,6 @@ void AP_Simulink::step() {
 
 // ** Logging **
 void AP_Simulink::logging() {
-#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
-    if (!output.enable_p) { return; }
     uint64_t time_us = AP::dal().micros64();
 
     struct log_Simulink_1 pkt1 {
@@ -177,5 +169,4 @@ void AP_Simulink::logging() {
             roll_obj : output.roll_obj
     };
     AP::logger().WriteBlock(&pkt6, sizeof(pkt6));
-#endif
 }

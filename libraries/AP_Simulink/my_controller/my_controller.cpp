@@ -7,9 +7,9 @@
 //
 // Code generated for Simulink model 'my_controller'.
 //
-// Model version                  : 1.138
+// Model version                  : 1.158
 // Simulink Coder version         : 23.2 (R2023b) 01-Aug-2023
-// C/C++ source code generated on : Sun Feb 25 00:21:32 2024
+// C/C++ source code generated on : Sun Feb 25 14:59:07 2024
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -26,11 +26,11 @@
 void my_controller::step()
 {
   float rtb_Add;
-  float rtb_FilterCoefficient;
-  float rtb_FilterCoefficient_d;
-  float rtb_FilterCoefficient_o;
-  float rtb_Integrator;
-  float rtb_Integrator_e;
+  float rtb_Add1;
+  float rtb_Add_p;
+  float rtb_SumD;
+  float rtb_SumD_i;
+  float rtb_SumD_k;
 
   // Outport: '<Root>/enable' incorporates:
   //   Constant: '<S1>/AUTO'
@@ -122,14 +122,14 @@ void my_controller::step()
     //   Inport: '<Root>/aileron_rc'
     //   Merge: '<S2>/Merge'
 
-    DW.Merge = 0.5F * U.aileron_rc;
+    DW.Merge = 0.333333343F * U.aileron_rc;
 
     // Gain: '<S6>/Gain' incorporates:
     //   Gain: '<S5>/Gain1'
     //   Inport: '<Root>/elevator_rc'
     //   Merge: '<S2>/Merge1'
 
-    DW.Merge1 = 0.5F * U.elevator_rc;
+    DW.Merge1 = 0.166666672F * U.elevator_rc;
 
     // Merge: '<S2>/Merge2' incorporates:
     //   Gain: '<S5>/Gain2'
@@ -144,59 +144,53 @@ void my_controller::step()
   // Sum: '<S10>/Add' incorporates:
   //   Inport: '<Root>/roll'
 
-  rtb_Integrator = DW.Merge - U.roll;
+  rtb_Add = DW.Merge - U.roll;
 
-  // Gain: '<S96>/Filter Coefficient' incorporates:
+  // Sum: '<S88>/SumD' incorporates:
   //   DiscreteIntegrator: '<S88>/Filter'
-  //   Gain: '<S87>/Derivative Gain'
-  //   Sum: '<S88>/SumD'
 
-  rtb_FilterCoefficient = (0.5F * rtb_Integrator - DW.Filter_DSTATE) * 100.0F;
+  rtb_SumD = rtb_Add - DW.Filter_DSTATE;
 
   // Outport: '<Root>/aileron' incorporates:
   //   DiscreteIntegrator: '<S93>/Integrator'
+  //   Gain: '<S98>/Proportional Gain'
   //   Sum: '<S102>/Sum'
 
-  Y.aileron = (rtb_Integrator + DW.Integrator_DSTATE) + rtb_FilterCoefficient;
+  Y.aileron = (2.0F * rtb_Add + DW.Integrator_DSTATE) + rtb_SumD;
 
   // Sum: '<S9>/Add1' incorporates:
   //   Inport: '<Root>/pitch'
 
-  rtb_Integrator_e = DW.Merge1 - U.pitch;
+  rtb_Add1 = DW.Merge1 - U.pitch;
 
-  // Gain: '<S47>/Filter Coefficient' incorporates:
+  // Sum: '<S39>/SumD' incorporates:
   //   DiscreteIntegrator: '<S39>/Filter'
-  //   Gain: '<S38>/Derivative Gain'
-  //   Sum: '<S39>/SumD'
 
-  rtb_FilterCoefficient_d = (0.1F * rtb_Integrator_e - DW.Filter_DSTATE_e) *
-    100.0F;
+  rtb_SumD_i = rtb_Add1 - DW.Filter_DSTATE_e;
 
   // Outport: '<Root>/elevator' incorporates:
   //   DiscreteIntegrator: '<S44>/Integrator'
+  //   Gain: '<S49>/Proportional Gain'
   //   Sum: '<S53>/Sum'
 
-  Y.elevator = (rtb_Integrator_e + DW.Integrator_DSTATE_f) +
-    rtb_FilterCoefficient_d;
+  Y.elevator = (2.0F * rtb_Add1 + DW.Integrator_DSTATE_f) + rtb_SumD_i;
 
   // Sum: '<S11>/Add' incorporates:
   //   Inport: '<Root>/airspeed'
 
-  rtb_Add = DW.Merge2 - U.airspeed;
+  rtb_Add_p = DW.Merge2 - U.airspeed;
 
-  // Gain: '<S145>/Filter Coefficient' incorporates:
+  // Sum: '<S137>/SumD' incorporates:
   //   DiscreteIntegrator: '<S137>/Filter'
-  //   Sum: '<S137>/SumD'
 
-  rtb_FilterCoefficient_o = (rtb_Add - DW.Filter_DSTATE_d) * 100.0F;
+  rtb_SumD_k = rtb_Add_p - DW.Filter_DSTATE_d;
 
   // Outport: '<Root>/throttle' incorporates:
   //   DiscreteIntegrator: '<S142>/Integrator'
   //   Gain: '<S147>/Proportional Gain'
   //   Sum: '<S151>/Sum'
 
-  Y.throttle = (5.0F * rtb_Add + DW.Integrator_DSTATE_a) +
-    rtb_FilterCoefficient_o;
+  Y.throttle = (2.0F * rtb_Add_p + DW.Integrator_DSTATE_a) + rtb_SumD_k;
 
   // Outport: '<Root>/airspeed_obj'
   Y.airspeed_obj = DW.Merge2;
@@ -207,27 +201,49 @@ void my_controller::step()
   // Outport: '<Root>/roll_obj'
   Y.roll_obj = DW.Merge;
 
-  // Update for DiscreteIntegrator: '<S93>/Integrator' incorporates:
-  //   Gain: '<S90>/Integral Gain'
+  // Outport: '<Root>/rudder' incorporates:
+  //   Inport: '<Root>/rudder_rc'
 
-  DW.Integrator_DSTATE += 0.0F * rtb_Integrator * 0.01F;
+  Y.rudder = U.rudder_rc;
+
+  // Update for DiscreteIntegrator: '<S93>/Integrator'
+  DW.Integrator_DSTATE += 0.01F * rtb_Add;
+  if (DW.Integrator_DSTATE > 1.0F) {
+    DW.Integrator_DSTATE = 1.0F;
+  } else if (DW.Integrator_DSTATE < -1.0F) {
+    DW.Integrator_DSTATE = -1.0F;
+  }
+
+  // End of Update for DiscreteIntegrator: '<S93>/Integrator'
 
   // Update for DiscreteIntegrator: '<S88>/Filter'
-  DW.Filter_DSTATE += 0.01F * rtb_FilterCoefficient;
+  DW.Filter_DSTATE += 0.01F * rtb_SumD;
 
-  // Update for DiscreteIntegrator: '<S44>/Integrator' incorporates:
-  //   Gain: '<S41>/Integral Gain'
+  // Update for DiscreteIntegrator: '<S44>/Integrator'
+  DW.Integrator_DSTATE_f += 0.01F * rtb_Add1;
+  if (DW.Integrator_DSTATE_f > 1.0F) {
+    DW.Integrator_DSTATE_f = 1.0F;
+  } else if (DW.Integrator_DSTATE_f < -1.0F) {
+    DW.Integrator_DSTATE_f = -1.0F;
+  }
 
-  DW.Integrator_DSTATE_f += 0.1F * rtb_Integrator_e * 0.01F;
+  // End of Update for DiscreteIntegrator: '<S44>/Integrator'
 
   // Update for DiscreteIntegrator: '<S39>/Filter'
-  DW.Filter_DSTATE_e += 0.01F * rtb_FilterCoefficient_d;
+  DW.Filter_DSTATE_e += 0.01F * rtb_SumD_i;
 
   // Update for DiscreteIntegrator: '<S142>/Integrator'
-  DW.Integrator_DSTATE_a += 0.01F * rtb_Add;
+  DW.Integrator_DSTATE_a += 0.01F * rtb_Add_p;
+  if (DW.Integrator_DSTATE_a > 1.0F) {
+    DW.Integrator_DSTATE_a = 1.0F;
+  } else if (DW.Integrator_DSTATE_a < -1.0F) {
+    DW.Integrator_DSTATE_a = -1.0F;
+  }
+
+  // End of Update for DiscreteIntegrator: '<S142>/Integrator'
 
   // Update for DiscreteIntegrator: '<S137>/Filter'
-  DW.Filter_DSTATE_d += 0.01F * rtb_FilterCoefficient_o;
+  DW.Filter_DSTATE_d += 0.01F * rtb_SumD_k;
 }
 
 // Model initialize function
@@ -243,13 +259,13 @@ void my_controller::terminate()
 }
 
 // Block states get method
-const DW_T &my_controller::getDWork() const
+const my_controller::DW_T &my_controller::getDWork() const
 {
   return DW;
 }
 
 // Block states set method
-void my_controller::setDWork(const DW_T *pDW_T)
+void my_controller::setDWork(const my_controller::DW_T *pDW_T)
 {
   DW = *pDW_T;
 }
