@@ -12,7 +12,7 @@
 
 #include QUOTE(SIMULINK_MODEL/SIMULINK_MODEL.cpp)
 
-// Convert range [-pi/2, pi/2] to [-4500, 4500]
+// Convert range [-pi/2, pi/2] to [-4500, 4500] and back
 #define RAD2SERVO(input) constrain_float(degrees(input) * 50, -4500, 4500)
 #define SERVO2RAD(input) constrain_float(radians(input / 50), -M_PI/2, M_PI/2)
 
