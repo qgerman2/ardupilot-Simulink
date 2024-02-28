@@ -38,15 +38,17 @@ struct PACKED log_Simulink_2 {
     float yaw_nav;                     // '<Root>/yaw_nav'
     float yaw_error;                   // '<Root>/yaw_error'
     float altitude_nav;                // '<Root>/altitude_nav'
+    float airspeed_nav;
 };
 #define LOG_SIMULINK_STRUCTURE_2 \
     { LOG_SIMULINK_2, sizeof(log_Simulink_2), \
-      "SLK2", "Qfff", \
+      "SLK2", "Qffff", \
       "TimeUS," \
       "yaw_nav," \
       "yaw_error," \
-      "altitude_nav" \
-      , "s---", "F---", true}
+      "altitude_nav," \
+      "airspeed_nav" \
+      , "s----", "F----", true}
 
 #define LOG_SIMULINK_3 250
 struct PACKED log_Simulink_3 {
@@ -75,7 +77,7 @@ struct PACKED log_Simulink_4 {
     uint64_t time_us;
     float roll_L1;                     // '<Root>/roll_L1'
     float pitch_TECS;                  // '<Root>/pitch_TECS'
-    float airspeed_TECS;               // '<Root>/airspeed_TECS'
+    float throttle_TECS;               // '<Root>/throttle_TECS'
 };
 #define LOG_SIMULINK_STRUCTURE_4 \
     { LOG_SIMULINK_4, sizeof(log_Simulink_4), \
@@ -83,7 +85,7 @@ struct PACKED log_Simulink_4 {
       "TimeUS," \
       "roll_L1," \
       "pitch_TECS," \
-      "airspeed_TECS" \
+      "throttle_TECS" \
       , "s---", "F---", true}
 
 #define LOG_SIMULINK_5 252
@@ -111,17 +113,17 @@ struct PACKED log_Simulink_5 {
 struct PACKED log_Simulink_6 {
     LOG_PACKET_HEADER;
     uint64_t time_us;
-    float airspeed_obj;                // '<Root>/airspeed_obj'
     float pitch_obj;                   // '<Root>/pitch_obj'
     float roll_obj;                    // '<Root>/roll_obj'
+    float debug;
 };
 #define LOG_SIMULINK_STRUCTURE_6 \
     { LOG_SIMULINK_6, sizeof(log_Simulink_6), \
       "SLK6", "Qfff", \
       "TimeUS," \
-      "airspeed_obj," \
       "pitch_obj," \
-      "roll_obj" \
+      "roll_obj," \
+      "debug" \
       , "s---", "F---", true}
 
 class AP_Simulink {
@@ -142,11 +144,12 @@ public:
     float altitude_nav;
     float yaw_error;
     float yaw_nav;
+    float airspeed_nav;
 
     // High level controller
     float roll_L1;
     float pitch_TECS;
-    float airspeed_TECS;
+    float throttle_TECS;
 
     AP_Simulink() {};
     void init();

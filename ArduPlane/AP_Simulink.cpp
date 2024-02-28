@@ -21,11 +21,12 @@ void AP_Simulink_Plane::pre_loop() {
     altitude_nav = plane.TECS_controller._hgt_dem;
     yaw_error = plane.L1_controller._bearing_error;
     yaw_nav = plane.L1_controller._nav_bearing;
+    airspeed_nav = plane.TECS_controller.get_target_airspeed();
 
     // High level controller variables
     roll_L1 = radians(plane.nav_roll_cd * 0.01f);
     pitch_TECS = radians(plane.nav_pitch_cd * 0.01f);
-    airspeed_TECS = plane.TECS_controller._TAS_dem;
+    throttle_TECS = plane.TECS_controller.get_throttle_demand();
     loop();
 }
 

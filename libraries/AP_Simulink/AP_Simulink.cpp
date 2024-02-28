@@ -8,7 +8,7 @@
 #include <AP_DAL/AP_DAL.h>
 #include <../ArduPlane/mode.h>
 
-#define SIMULINK_MODEL my_controller
+#define SIMULINK_MODEL modelo
 
 #include QUOTE(SIMULINK_MODEL/SIMULINK_MODEL.cpp)
 
@@ -33,7 +33,6 @@ void AP_Simulink::init() {
     simulink_ch = rc_ch->find_channel_for_option(RC_Channel::AUX_FUNC::SCRIPTING_1);
     if (simulink_ch == nullptr) {
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: No Scripting1 channel found.");
-        return;
     }
     GCS_SEND_TEXT(MAV_SEVERITY_INFO, "AP_Simulink: Initialized '" QUOTE(SIMULINK_MODEL) "' model.");
     control.initialize();
@@ -61,6 +60,7 @@ void AP_Simulink::step() {
     input.yaw_nav = yaw_nav;
     input.yaw_error = yaw_error;
     input.altitude_nav = altitude_nav;
+    input.airspeed_nav = airspeed_nav;
     // rc
     input.aileron_rc = SERVO2RAD(aileron_rc);
     input.elevator_rc = SERVO2RAD(elevator_rc);
@@ -70,7 +70,7 @@ void AP_Simulink::step() {
     // high level controllers
     input.roll_L1 = roll_L1;
     input.pitch_TECS = pitch_TECS;
-    input.airspeed_TECS = airspeed_TECS;
+    input.throttle_TECS = throttle_TECS;
 
     control.setExternalInputs(&input);
 
@@ -127,6 +127,7 @@ void AP_Simulink::logging() {
             yaw_nav : input.yaw_nav,
             yaw_error : input.yaw_error,
             altitude_nav : input.altitude_nav,
+            airspeed_nav : input.airspeed_nav,
     };
     AP::logger().WriteBlock(&pkt2, sizeof(pkt2));
 
@@ -146,7 +147,7 @@ void AP_Simulink::logging() {
             time_us: time_us,
             roll_L1 : input.roll_L1,
             pitch_TECS : input.pitch_TECS,
-            airspeed_TECS : input.airspeed_TECS,
+            throttle_TECS : input.throttle_TECS,
     };
     AP::logger().WriteBlock(&pkt4, sizeof(pkt4));
 
@@ -164,9 +165,9 @@ void AP_Simulink::logging() {
     struct log_Simulink_6 pkt6 {
         LOG_PACKET_HEADER_INIT(LOG_SIMULINK_6),
             time_us: time_us,
-            airspeed_obj : output.airspeed_obj,
             pitch_obj : output.pitch_obj,
-            roll_obj : output.roll_obj
+            roll_obj : output.roll_obj,
+            debug : output.debug,
     };
     AP::logger().WriteBlock(&pkt6, sizeof(pkt6));
 }
