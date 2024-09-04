@@ -81,6 +81,10 @@ void AP_ExternalAHRS_HITL::thread(void) {
         if (on_ahrs_time > last_ahrs_time) {
             send_rc();
         }
+        if (now - last_ping_time > ping_interval) {
+            send_ping();
+            last_ping_time = now;
+        }
         hal.scheduler->delay(1);
     }
 }
@@ -228,6 +232,10 @@ void AP_ExternalAHRS_HITL::send_rc() {
     rc_msg.ahrs_count = ahrs_count_send;
     uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
     uart->write(reinterpret_cast<uint8_t *>(&rc_msg), sizeof(rc_msg));
+}
+
+void AP_ExternalAHRS_HITL::send_ping() {
+    uart->write(reinterpret_cast<uint8_t *>(&ping_msg[0]), sizeof(ping_msg));
 }
 
 // external EKF

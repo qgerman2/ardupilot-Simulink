@@ -59,6 +59,8 @@ private:
         uint8_t ahrs_count;
     } rc_msg;
 
+    char ping_msg[sizeof(header)+sizeof(rc_msg)] = "HITLPINGHITLPINGHITLPING";
+
     AP_HAL::UARTDriver *uart;
 
     uint8_t buffer[200];
@@ -80,6 +82,10 @@ private:
     // time without updates before the ekf ahrs becomes unhealthy
     const uint32_t unhealthy_ahrs_ms = 100;
 
+    // ping timer
+    uint32_t last_ping_time = 0;
+    const uint32_t ping_interval = 1000;
+
     void thread();
 
     void read(uint32_t t);
@@ -89,6 +95,7 @@ private:
     void push_sensors();
     void push_ekf();
     void send_rc();
+    void send_ping();
 };
 
 #endif
