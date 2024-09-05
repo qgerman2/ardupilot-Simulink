@@ -56,10 +56,10 @@ private:
         float elevator;
         float rudder;
         float throttle;
-        uint8_t ahrs_count;
+        uint32_t ahrs_count;
     } rc_msg;
 
-    char ping_msg[sizeof(header)+sizeof(rc_msg)] = "HITLPINGHITLPINGHITLPING";
+    char ping_msg[sizeof(header) + sizeof(rc_msg)] = "HITLPINGHITLPINGHITLPING";
 
     AP_HAL::UARTDriver *uart;
 
@@ -70,14 +70,12 @@ private:
     int8_t port_num;
     bool port_open = false;
 
-    int reset_step;
-    uint32_t on_reset_time = 0;
     uint32_t on_ahrs_time = 0;
 
     // keep track of how many ahrs packet have been received
     uint32_t ahrs_count_time = 0;
-    uint8_t ahrs_count = 0;
-    uint8_t ahrs_count_send = 0;
+    uint32_t ahrs_count = 0;
+    uint32_t ahrs_count_send = 0;
 
     // time without updates before the ekf ahrs becomes unhealthy
     const uint32_t unhealthy_ahrs_ms = 100;
@@ -90,8 +88,7 @@ private:
 
     void read(uint32_t t);
     void on_ahrs(uint32_t t);
-    void on_reset(uint32_t t);
-    void reset_loop(uint32_t t);
+    void on_reset();
     void push_sensors();
     void push_ekf();
     void send_rc();

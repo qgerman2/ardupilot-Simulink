@@ -3,6 +3,7 @@
 #include "AP_ExternalAHRS_HITL.h"
 
 #if HAL_EXTERNAL_AHRS_HITL_ENABLED
+#include <AP_Vehicle/AP_Vehicle.h>
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_Arming/AP_Arming.h>
 #include <SRV_Channel/SRV_Channel.h>
@@ -68,13 +69,7 @@ void AP_ExternalAHRS_HITL::thread(void) {
             ahrs_count_time = now;
         }
         read(now);
-        if (reset_step) {
-            reset_loop(now);
-        }
-        if ((on_ahrs_time > last_ahrs_time) ||
-            (!healthy()) ||
-            (reset_step)
-            ) {
+        if ((on_ahrs_time > last_ahrs_time) || !healthy()) {
             push_sensors();
             push_ekf();
         }
@@ -109,7 +104,7 @@ void AP_ExternalAHRS_HITL::read(uint32_t t) {
         if (pos == sizeof(header)) {
             memcpy(&header, buffer, sizeof(header));
             if (header.type == 1) {
-                on_reset(t);
+                on_reset();
                 pos = 0;
             }
         } else if (pos == sizeof(ahrs_msg) + sizeof(header)) {
@@ -168,63 +163,15 @@ void AP_ExternalAHRS_HITL::push_ekf() {
 
 // restart ahrs
 
-void AP_ExternalAHRS_HITL::on_reset(uint32_t t) {
-    if (reset_step != 0) { return; };
-    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "HITL: Reset");
-    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "HITL: Disarming");
-    AP::arming().disarm(AP_Arming::Method::EKFFAILSAFE, false);
-    GCS_SEND_TEXT(MAV_SEVERITY_INFO, "HITL: Disabled GPS FIX");
-    if (AP::ahrs().initialised()) {
-        reset_step = 1;
-    } else {
-        reset_step = 3;
-    }
-    on_reset_time = t;
-}
-
-void AP_ExternalAHRS_HITL::reset_loop(uint32_t t) {
-    ahrs_msg.gps.fix_type = GPS_FIX_TYPE_NO_FIX;
-    if (t - on_reset_time > 10000) {
-        switch (reset_step) {
-        case 1:
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "HITL: Restarting AHRS");
-            if (AP::ahrs().initialised()) {
-                AP::ahrs().reset();
-            }
-            reset_step++;
-            break;
-        case 2:
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "HITL: Restored GPS FIX");
-            reset_step++;
-            break;
-        case 3:
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "HITL: Recalibrating baro");
-            AP::baro().update_calibration();
-            {
-                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "HITL: Setting origin");
-                WITH_SEMAPHORE(state.sem);
-                state.origin = state.location;
-            }
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "HITL: Reset done");
-            reset_step = 0;
-            break;
-        }
-        on_reset_time = t;
-    }
+void AP_ExternalAHRS_HITL::on_reset() {
+    GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "HITL: Reboot");
+    AP::vehicle()->reboot(false);
 }
 
 // rc
 
 void AP_ExternalAHRS_HITL::send_rc() {
-    if (reset_step > 0) {
-        rc_msg.state = reset_step + 1;
-    } else {
-        if (AP::arming().is_armed()) {
-            rc_msg.state = 1;
-        } else {
-            rc_msg.state = 0;
-        }
-    }
+    header.type = 1;
     rc_msg.aileron = SRV_Channels::get_output_norm(SRV_Channel::k_aileron);
     rc_msg.elevator = SRV_Channels::get_output_norm(SRV_Channel::k_elevator);
     rc_msg.rudder = SRV_Channels::get_output_norm(SRV_Channel::k_rudder);
