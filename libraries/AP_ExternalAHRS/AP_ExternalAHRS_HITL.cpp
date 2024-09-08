@@ -159,6 +159,10 @@ void AP_ExternalAHRS_HITL::push_ekf() {
     state.have_velocity = true;
     state.quat = { ahrs_msg.q1, ahrs_msg.q2, ahrs_msg.q3, ahrs_msg.q4 };
     state.have_quaternion = true;
+    if (!state.have_origin) {
+        state.origin = state.location;
+        state.have_origin = true;
+    }
 }
 
 // restart ahrs
@@ -172,16 +176,18 @@ void AP_ExternalAHRS_HITL::on_reset() {
 
 void AP_ExternalAHRS_HITL::send_rc() {
     header.type = 1;
-    rc_msg.aileron = SRV_Channels::get_output_norm(SRV_Channel::k_aileron);
-    rc_msg.elevator = SRV_Channels::get_output_norm(SRV_Channel::k_elevator);
-    rc_msg.rudder = SRV_Channels::get_output_norm(SRV_Channel::k_rudder);
-    rc_msg.throttle = SRV_Channels::get_output_norm(SRV_Channel::k_throttle);
+    for (int i = 0; i < 8; i++) {
+        int reversed = SRV_Channels::srv_channel(i)->get_reversed();
+        rc_msg.ch[i] = SRV_Channels::srv_channel(i)->get_output_norm() * reversed;
+    }
     rc_msg.ahrs_count = ahrs_count_send;
     uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
     uart->write(reinterpret_cast<uint8_t *>(&rc_msg), sizeof(rc_msg));
 }
 
 void AP_ExternalAHRS_HITL::send_ping() {
+    header.type = 0;
+    uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
     uart->write(reinterpret_cast<uint8_t *>(&ping_msg[0]), sizeof(ping_msg));
 }
 

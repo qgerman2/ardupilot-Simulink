@@ -52,14 +52,11 @@ private:
 
     struct {
         uint8_t state;
-        float aileron;
-        float elevator;
-        float rudder;
-        float throttle;
+        float ch[8];
         uint32_t ahrs_count;
     } rc_msg;
 
-    char ping_msg[sizeof(header) + sizeof(rc_msg)] = "HITLPINGHITLPINGHITLPING";
+    char ping_msg[21] = "PINGHITLPINGHITLPING";
 
     AP_HAL::UARTDriver *uart;
 
