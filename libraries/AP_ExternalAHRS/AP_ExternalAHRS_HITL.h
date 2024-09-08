@@ -56,18 +56,18 @@ private:
     } state_msg;
 
     struct {
-        float roll_cyclic;
-        float pitch_cyclic;
-        float collective;
-        float tail;
-        float throttle;
+        uint16_t roll_cyclic;
+        uint16_t pitch_cyclic;
+        uint16_t collective;
+        uint16_t tail;
+        uint16_t throttle;
     } heli_msg;
 
     struct {
-        float roll;
-        float pitch;
-        float yaw;
-        float throttle;
+        uint16_t roll;
+        uint16_t pitch;
+        uint16_t yaw;
+        uint16_t throttle;
     } plane_msg;
 
     char ping_msg[21] = "PINGHITLPINGHITLPING";
