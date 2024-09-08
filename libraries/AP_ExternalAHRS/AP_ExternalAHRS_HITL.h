@@ -52,9 +52,23 @@ private:
 
     struct {
         uint8_t state;
-        float ch[8];
         uint32_t ahrs_count;
-    } rc_msg;
+    } state_msg;
+
+    struct {
+        float roll_cyclic;
+        float pitch_cyclic;
+        float collective;
+        float tail;
+        float throttle;
+    } heli_msg;
+
+    struct {
+        float roll;
+        float pitch;
+        float yaw;
+        float throttle;
+    } plane_msg;
 
     char ping_msg[21] = "PINGHITLPINGHITLPING";
 

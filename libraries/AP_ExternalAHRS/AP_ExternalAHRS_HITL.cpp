@@ -176,13 +176,28 @@ void AP_ExternalAHRS_HITL::on_reset() {
 
 void AP_ExternalAHRS_HITL::send_rc() {
     header.type = 1;
-    for (int i = 0; i < 8; i++) {
-        int reversed = SRV_Channels::srv_channel(i)->get_reversed();
-        rc_msg.ch[i] = SRV_Channels::srv_channel(i)->get_output_norm() * reversed;
-    }
-    rc_msg.ahrs_count = ahrs_count_send;
+    state_msg.ahrs_count = ahrs_count_send;
     uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
-    uart->write(reinterpret_cast<uint8_t *>(&rc_msg), sizeof(rc_msg));
+    uart->write(reinterpret_cast<uint8_t *>(&state_msg), sizeof(state_msg));
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
+    header.type = 2;
+    plane_msg.roll = SRV_Channels::get_output_norm(SRV_Channel::k_aileron);
+    plane_msg.pitch = SRV_Channels::get_output_norm(SRV_Channel::k_elevator);
+    plane_msg.throttle = SRV_Channels::get_output_norm(SRV_Channel::k_throttle);
+    plane_msg.yaw = SRV_Channels::get_output_norm(SRV_Channel::k_rudder);
+    uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
+    uart->write(reinterpret_cast<uint8_t *>(&plane_msg), sizeof(plane_msg));
+#endif
+#if APM_BUILD_TYPE(APM_BUILD_Heli)
+    header.type = 3;
+    heli_msg.roll_cyclic = SRV_Channels::get_output_norm(SRV_Channel::k_motor1);
+    heli_msg.pitch_cyclic = SRV_Channels::get_output_norm(SRV_Channel::k_motor2);
+    heli_msg.collective = SRV_Channels::get_output_norm(SRV_Channel::k_motor3);
+    heli_msg.tail = SRV_Channels::get_output_norm(SRV_Channel::k_motor4);
+    heli_msg.throttle = (SRV_Channels::get_output_norm(SRV_Channel::k_heli_rsc) + 1.0f) / 2.0f;
+    uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
+    uart->write(reinterpret_cast<uint8_t *>(&heli_msg), sizeof(heli_msg));
+#endif
 }
 
 void AP_ExternalAHRS_HITL::send_ping() {
