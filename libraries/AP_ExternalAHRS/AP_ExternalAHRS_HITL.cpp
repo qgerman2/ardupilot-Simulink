@@ -183,6 +183,8 @@ void AP_ExternalAHRS_HITL::send_rc() {
     } else {
         state_msg.state = armed ? 2 : 1;
     }
+    state_msg.starter = 0;
+    SRV_Channels::get_output_pwm(SRV_Channel::k_starter, state_msg.starter);
     state_msg.ahrs_count = ahrs_count_send;
     uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
     uart->write(reinterpret_cast<uint8_t *>(&state_msg), sizeof(state_msg));

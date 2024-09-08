@@ -53,6 +53,7 @@ private:
     struct {
         uint8_t state;
         uint32_t ahrs_count;
+        uint16_t starter;
     } state_msg;
 
     struct {
