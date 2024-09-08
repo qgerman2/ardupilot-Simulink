@@ -176,6 +176,13 @@ void AP_ExternalAHRS_HITL::on_reset() {
 
 void AP_ExternalAHRS_HITL::send_rc() {
     header.type = 1;
+    bool safety_on = hal.util->safety_switch_state() != AP_HAL::Util::SAFETY_DISARMED;
+    bool armed = AP::arming().is_armed();
+    if (safety_on) {
+        state_msg.state = 0;
+    } else {
+        state_msg.state = armed ? 2 : 1;
+    }
     state_msg.ahrs_count = ahrs_count_send;
     uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
     uart->write(reinterpret_cast<uint8_t *>(&state_msg), sizeof(state_msg));
