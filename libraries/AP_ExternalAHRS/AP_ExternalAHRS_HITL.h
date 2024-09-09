@@ -10,6 +10,7 @@
 #include "AP_ExternalAHRS_backend.h"
 #include <AP_GPS/AP_GPS.h>
 #include <AP_HAL/AP_HAL.h>
+#include <AP_EFI/AP_EFI.h>
 
 class AP_ExternalAHRS_HITL : public AP_ExternalAHRS_backend {
 public:
@@ -75,19 +76,16 @@ private:
 
     AP_HAL::UARTDriver *uart;
 
+    // serial rx buffer
     uint8_t buffer[200];
     long unsigned int pos = 0;
 
-    uint32_t baudrate;
-    int8_t port_num;
-    bool port_open = false;
-
+    // time of most recent telemetry packet
     uint32_t on_ahrs_time = 0;
 
     // keep track of how many ahrs packet have been received
     uint32_t ahrs_count_time = 0;
     uint32_t ahrs_count = 0;
-    uint32_t ahrs_count_send = 0;
 
     // time without updates before the ekf ahrs becomes unhealthy
     const uint32_t unhealthy_ahrs_ms = 100;
@@ -95,6 +93,9 @@ private:
     // ping timer
     uint32_t last_ping_time = 0;
     const uint32_t ping_interval = 1000;
+
+    // efi
+    AP_EFI_Backend *efi;
 
     void thread();
 

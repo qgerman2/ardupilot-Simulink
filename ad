@@ -1,0 +1,35 @@
+[33mcommit 6a26181d40c12cd54b8be468f8dd7aa76219a182[m[33m ([m[1;36mHEAD -> [m[1;32msimulink[m[33m, [m[1;31morigin/simulink[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: qgerman2 <qgerman2@gmail.com>
+Date:   Sun Sep 8 15:25:13 2024 -0300
+
+    ice
+
+[33mcommit 317f18e311c20f30509f57f70230edab108af1fe[m
+Author: qgerman2 <qgerman2@gmail.com>
+Date:   Sun Sep 8 13:55:47 2024 -0300
+
+    pwm
+
+[33mcommit 123119054a36bddeb108efe7a944fbd6547fc7a0[m
+Author: qgerman2 <qgerman2@gmail.com>
+Date:   Sun Sep 8 13:23:52 2024 -0300
+
+    send armed state
+
+[33mcommit 2f0fec8168a7c7411942ee07dea97b6d9976675f[m
+Author: qgerman2 <qgerman2@gmail.com>
+Date:   Sat Sep 7 22:40:37 2024 -0400
+
+    plane heli
+
+[33mcommit 0e7abb1f45c24d8f1a69972255cd0606849c41eb[m
+Author: qgerman2 <qgerman2@gmail.com>
+Date:   Sat Sep 7 20:30:43 2024 -0400
+
+    set origin, send all channels
+
+[33mcommit b6b2bc808d6a48d41a81093637f5aab8f6d3f804[m[33m ([m[1;34mgrafted[m[33m)[m
+Author: qgerman2 <qgerman2@gmail.com>
+Date:   Thu Sep 5 10:55:16 2024 -0400
+
+    restore vehicle.cpp

@@ -28,8 +28,6 @@ AP_ExternalAHRS_HITL::AP_ExternalAHRS_HITL(AP_ExternalAHRS *_frontend,
     // start serial communications
     auto &sm = AP::serialmanager();
     uart = sm.find_serial(AP_SerialManager::SerialProtocol_AHRS, 0);
-    baudrate = sm.find_baudrate(AP_SerialManager::SerialProtocol_AHRS, 0);
-    port_num = sm.find_portnum(AP_SerialManager::SerialProtocol_AHRS, 0);
     if (!uart) {
         GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "HITL: No serial port defined as type ExternalAHRS");
         return;
@@ -43,8 +41,8 @@ AP_ExternalAHRS_HITL::AP_ExternalAHRS_HITL(AP_ExternalAHRS *_frontend,
 }
 
 int8_t AP_ExternalAHRS_HITL::get_port(void) const {
-    if (!uart) { return -1; }
-    return port_num;
+    auto &sm = AP::serialmanager();
+    return sm.find_portnum(AP_SerialManager::SerialProtocol_AHRS, 0);
 };
 
 bool AP_ExternalAHRS_HITL::pre_arm_check(char *failure_msg, uint8_t failure_msg_len) const {
@@ -52,33 +50,47 @@ bool AP_ExternalAHRS_HITL::pre_arm_check(char *failure_msg, uint8_t failure_msg_
 }
 
 void AP_ExternalAHRS_HITL::thread(void) {
-    if (!port_open) {
-        port_open = true;
-        uart->begin(baudrate);
-    }
+    auto &sm = AP::serialmanager();
+    uart->begin(sm.find_baudrate(AP_SerialManager::SerialProtocol_AHRS, 0));
 
     while (true) {
         uint32_t now = AP_HAL::millis();
+        // find efi
+#if AP_EFI_SCRIPTING_ENABLED
+        if (efi == nullptr) {
+            efi = AP::EFI()->get_backend(0);
+            if (efi != nullptr) {
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "HITL: EFI Enabled");
+            }
+        }
+#endif
         // keep track of how many state packets have been received
         // every second (1000 ms)
         // these are shown in the xplane plugin and it should match the fps
-        uint32_t last_ahrs_time = on_ahrs_time;
         if (now - ahrs_count_time > 1000) {
-            ahrs_count_send = ahrs_count;
+            state_msg.ahrs_count = ahrs_count;
             ahrs_count = 0;
             ahrs_count_time = now;
         }
+        // read and process data from xplane plugin
+        uint32_t last_ahrs_time = on_ahrs_time;
         read(now);
-        if ((on_ahrs_time > last_ahrs_time) || !healthy()) {
+        if (!healthy()) {
+            // not connected, spam sensor data to avoid ardupilot complaining
+            // and send pings
             push_sensors();
-            push_ekf();
-        }
-        if (on_ahrs_time > last_ahrs_time) {
-            send_rc();
-        }
-        if (now - last_ping_time > ping_interval) {
-            send_ping();
-            last_ping_time = now;
+            if (now - last_ping_time > ping_interval) {
+                send_ping();
+                last_ping_time = now;
+            }
+        } else {
+            // connected, on new telemetry from xplane
+            // respond with servo outputs
+            if (on_ahrs_time > last_ahrs_time) {
+                push_sensors();
+                push_ekf();
+                send_rc();
+            }
         }
         hal.scheduler->delay(1);
     }
@@ -185,7 +197,6 @@ void AP_ExternalAHRS_HITL::send_rc() {
     }
     state_msg.starter = 0;
     SRV_Channels::get_output_pwm(SRV_Channel::k_starter, state_msg.starter);
-    state_msg.ahrs_count = ahrs_count_send;
     uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
     uart->write(reinterpret_cast<uint8_t *>(&state_msg), sizeof(state_msg));
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
