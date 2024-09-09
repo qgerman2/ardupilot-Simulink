@@ -48,6 +48,7 @@ private:
         };
         AP_ExternalAHRS::airspeed_data_message_t aspd{};
         float q1, q2, q3, q4;
+        EFI_State efi{};
     } ahrs_msg;
 
 
@@ -77,7 +78,7 @@ private:
     AP_HAL::UARTDriver *uart;
 
     // serial rx buffer
-    uint8_t buffer[200];
+    uint8_t buffer[600];
     long unsigned int pos = 0;
 
     // time of most recent telemetry packet

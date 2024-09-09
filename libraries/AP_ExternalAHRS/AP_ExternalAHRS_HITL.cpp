@@ -90,9 +90,7 @@ void AP_ExternalAHRS_HITL::thread(void) {
                 push_sensors();
                 push_ekf();
 #if AP_EFI_SCRIPTING_ENABLED
-                if (efi != nullptr) {
-                    push_efi();
-                }
+                push_efi();
 #endif
                 send_rc();
             }
@@ -126,6 +124,7 @@ void AP_ExternalAHRS_HITL::read(uint32_t t) {
             }
         } else if (pos == sizeof(ahrs_msg) + sizeof(header)) {
             if (header.type == 0) {
+                memcpy(&ahrs_msg, &buffer[sizeof(header)], sizeof(ahrs_msg));
                 on_ahrs(t);
             }
             pos = 0;
@@ -139,7 +138,6 @@ float random_float() {
 }
 
 void AP_ExternalAHRS_HITL::on_ahrs(uint32_t t) {
-    memcpy(&ahrs_msg, &buffer[sizeof(header)], sizeof(ahrs_msg));
     // baro readings are considered unhealthy if its the same everytime
     // this can happen if the plane is parked or in calibration
     ahrs_msg.baro.pressure_pa += random_float();
@@ -155,6 +153,7 @@ void AP_ExternalAHRS_HITL::on_ahrs(uint32_t t) {
         ahrs_msg.mag.field *= (intensity * 1000);
     }
     on_ahrs_time = t;
+    ahrs_msg.efi.last_updated_ms = t;
     ahrs_count++;
 }
 
@@ -184,24 +183,9 @@ void AP_ExternalAHRS_HITL::push_ekf() {
 
 #if AP_EFI_SCRIPTING_ENABLED
 void AP_ExternalAHRS_HITL::push_efi() {
-    EFI_State efi_state;
-    efi_state.last_updated_ms = AP_HAL::millis();
-    efi_state.engine_state = Engine_State::RUNNING; // sim/flightmodel/engine/ENGN_running
-    efi_state.general_error = false;
-    efi_state.crankshaft_sensor_status = Crankshaft_Sensor_Status::NOT_SUPPORTED;
-    efi_state.temperature_status = Temperature_Status::NOT_SUPPORTED;
-    efi_state.fuel_pressure_status = Fuel_Pressure_Status::NOT_SUPPORTED;
-    efi_state.oil_pressure_status = Oil_Pressure_Status::NOT_SUPPORTED;
-    efi_state.detonation_status = Detonation_Status::NOT_SUPPORTED;
-    efi_state.misfire_status = Misfire_Status::NOT_SUPPORTED;
-    efi_state.debris_status = Debris_Status::NOT_SUPPORTED;
-    efi_state.engine_load_percent = 0; // sim/flightmodel/engine/ENGN_power div sim/aircraft/engine/acf_pmax_per_engine
-    efi_state.engine_speed_rpm = 0; // sim/flightmodel/engine/ENGN_tacrad
-    efi_state.atmospheric_pressure_kpa = 0; // baro.pressure_pa
-    efi_state.estimated_consumed_fuel_volume_cm3 = 0;
-    efi_state.throttle_position_percent = 0; // throttle
-    efi_state.throttle_out = 0;
-    efi->handle_scripting(efi_state);
+    if (efi != nullptr) {
+        efi->handle_scripting(ahrs_msg.efi);
+    }
 }
 #endif
 
