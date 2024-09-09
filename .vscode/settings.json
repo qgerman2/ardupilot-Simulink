@@ -11,5 +11,6 @@
         "ostream": "cpp",
         "sstream": "cpp",
         "any": "cpp"
-    }
+    },
+    "C_Cpp.default.defines": ["AP_SCRIPTING_ENABLED"]
 }
