@@ -10,7 +10,7 @@
 #include "AP_ExternalAHRS_backend.h"
 #include <AP_GPS/AP_GPS.h>
 #include <AP_HAL/AP_HAL.h>
-#include <AP_EFI/AP_EFI_Scripting.h>
+#include <AP_EFI/AP_EFI.h>
 
 class AP_ExternalAHRS_HITL : public AP_ExternalAHRS_backend {
 public:
@@ -95,10 +95,8 @@ private:
     uint32_t last_ping_time = 0;
     const uint32_t ping_interval = 1000;
 
-#if AP_EFI_SCRIPTING_ENABLED
     // efi
-    AP_EFI_Scripting *efi;
-#endif
+    AP_EFI_Backend *efi;
 
     void thread();
 

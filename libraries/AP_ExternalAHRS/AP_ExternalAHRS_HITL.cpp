@@ -58,7 +58,7 @@ void AP_ExternalAHRS_HITL::thread(void) {
         // find efi
 #if AP_EFI_SCRIPTING_ENABLED
         if (efi == nullptr) {
-            efi = static_cast<AP_EFI_Scripting *>(AP::EFI()->get_backend(0));
+            efi = AP::EFI()->get_backend(0);
             if (efi != nullptr) {
                 GCS_SEND_TEXT(MAV_SEVERITY_INFO, "HITL: EFI Enabled");
             }
