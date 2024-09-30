@@ -26,10 +26,15 @@ public:
     void update() override;
 
 private:
-    struct {
+    struct _header {
         char preamble[4] = { 'H', 'I', 'T', 'L' };
         int type;
-    } header;
+    };
+
+    struct _footer {
+        int len;
+        char postamble[3] = { 'E','N','D' };
+    };
 
     struct {
         AP_ExternalAHRS::baro_data_message_t baro{

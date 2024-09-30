@@ -101,6 +101,8 @@ void AP_ExternalAHRS_HITL::thread(void) {
 
 void AP_ExternalAHRS_HITL::read(uint32_t t) {
     uint32_t nbytes = uart->available();
+    struct _header header;
+    struct _footer footer;
     while (nbytes-- > 0) {
         // read a single byte into the buffer
         if (!uart->read(&buffer[pos], 1)) {
@@ -122,12 +124,15 @@ void AP_ExternalAHRS_HITL::read(uint32_t t) {
                 on_reset();
                 pos = 0;
             }
-        } else if (pos == sizeof(ahrs_msg) + sizeof(header)) {
-            if (header.type == 0) {
-                memcpy(&ahrs_msg, &buffer[sizeof(header)], sizeof(ahrs_msg));
-                on_ahrs(t);
-            }
+        } else if (pos == sizeof(ahrs_msg) + sizeof(header) + sizeof(footer)) {
             pos = 0;
+            memcpy(&header, buffer, sizeof(header));
+            memcpy(&footer, &buffer[sizeof(header) + sizeof(ahrs_msg)], sizeof(footer));
+            if (header.type != 0) { continue; }
+            if (footer.len != sizeof(header) + sizeof(ahrs_msg)) { continue; }
+            if (strncmp(footer.postamble, "END", 3) != 0) { continue; };
+            memcpy(&ahrs_msg, &buffer[sizeof(header)], sizeof(ahrs_msg));
+            on_ahrs(t);
         }
     }
 }
@@ -199,6 +204,7 @@ void AP_ExternalAHRS_HITL::on_reset() {
 // rc
 
 void AP_ExternalAHRS_HITL::send_rc() {
+    struct _header header;
     header.type = 1;
     ///bool safety_on = hal.util->safety_switch_state() != AP_HAL::Util::SAFETY_DISARMED;
     // disabled check due to inconsistent behaviour
@@ -213,6 +219,9 @@ void AP_ExternalAHRS_HITL::send_rc() {
     SRV_Channels::get_output_pwm(SRV_Channel::k_starter, state_msg.starter);
     uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
     uart->write(reinterpret_cast<uint8_t *>(&state_msg), sizeof(state_msg));
+    struct _footer footer;
+    footer.len = sizeof(header) + sizeof(state_msg);
+    uart->write(reinterpret_cast<uint8_t *>(&footer), sizeof(footer));
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
     header.type = 2;
     SRV_Channels::get_output_pwm(SRV_Channel::k_aileron, plane_msg.roll);
@@ -221,6 +230,8 @@ void AP_ExternalAHRS_HITL::send_rc() {
     SRV_Channels::get_output_pwm(SRV_Channel::k_rudder, plane_msg.yaw);
     uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
     uart->write(reinterpret_cast<uint8_t *>(&plane_msg), sizeof(plane_msg));
+    footer.len = sizeof(header) + sizeof(plane_msg);
+    uart->write(reinterpret_cast<uint8_t *>(&footer), sizeof(footer));
 #endif
 #if APM_BUILD_TYPE(APM_BUILD_Heli)
     header.type = 3;
@@ -231,13 +242,19 @@ void AP_ExternalAHRS_HITL::send_rc() {
     SRV_Channels::get_output_pwm(SRV_Channel::k_heli_rsc, heli_msg.throttle);
     uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
     uart->write(reinterpret_cast<uint8_t *>(&heli_msg), sizeof(heli_msg));
+    footer.len = sizeof(header) + sizeof(heli_msg);
+    uart->write(reinterpret_cast<uint8_t *>(&footer), sizeof(footer));
 #endif
 }
 
 void AP_ExternalAHRS_HITL::send_ping() {
+    struct _header header;
     header.type = 0;
     uart->write(reinterpret_cast<uint8_t *>(&header), sizeof(header));
     uart->write(reinterpret_cast<uint8_t *>(&ping_msg[0]), sizeof(ping_msg));
+    struct _footer footer;
+    footer.len = sizeof(header) + sizeof(ping_msg);
+    uart->write(reinterpret_cast<uint8_t *>(&footer), sizeof(footer));
 }
 
 // external EKF
