@@ -200,7 +200,9 @@ void AP_ExternalAHRS_HITL::on_reset() {
 
 void AP_ExternalAHRS_HITL::send_rc() {
     header.type = 1;
-    bool safety_on = hal.util->safety_switch_state() != AP_HAL::Util::SAFETY_DISARMED;
+    ///bool safety_on = hal.util->safety_switch_state() != AP_HAL::Util::SAFETY_DISARMED;
+    // disabled check due to inconsistent behaviour
+    bool safety_on = false;
     bool armed = AP::arming().is_armed();
     if (safety_on) {
         state_msg.state = 0;
